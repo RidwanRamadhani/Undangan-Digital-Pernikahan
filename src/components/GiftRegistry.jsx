@@ -85,7 +85,7 @@ export default function GiftRegistry({ bankAccounts, giftAddress, initialWishlis
 
     ctx.fillStyle = '#666666';
     ctx.font = '12px sans-serif';
-    ctx.fillText('NMID: ID1020261114999', 225, 138);
+    ctx.fillText('NMID: ID1020270202999', 225, 138);
 
     QRCode.toCanvas(canvas, '00020101021226680016ID.CO.QRIS.WWW01189360099800000000005204581253033605802ID5919RIDWAN SALMA WEDDING6007JAKARTA6304ABCD', {
       width: 320,
@@ -233,7 +233,7 @@ export default function GiftRegistry({ bankAccounts, giftAddress, initialWishlis
               <div className="border-b border-gray-200 pb-2 mb-3">
                 <span className="text-xs font-bold text-rose-600 tracking-wider">QRIS STANDAR NASIONAL</span>
                 <p className="text-[11px] font-semibold text-gray-800">RIDWAN &amp; SALMA WEDDING</p>
-                <p className="text-[9px] text-gray-500">NMID: ID1020261114999</p>
+                <p className="text-[9px] text-gray-500">NMID: ID1020270202999</p>
               </div>
 
               <div className="w-52 h-52 mx-auto bg-gray-50 p-2 rounded-xl border flex items-center justify-center">

@@ -1,36 +1,36 @@
 export const weddingData = {
   couple: {
     groom: {
-      name: "Muhammad Ridwan, S.Kom.",
+      name: "Ridwan Ramadhani, S.Kom.",
       nickname: "Ridwan",
-      father: "Bpk. H. Ahmad Fauzi",
-      mother: "Ibu Hj. Siti Rahma",
-      order: "Putra pertama dari",
+      father: "Bpk. Hj. Suparjo",
+      mother: "Ibu Hj. Samsiah",
+      order: "Anak terakhir dari",
       instagram: "ridwan.dev",
       instagramUrl: "https://instagram.com",
-      photo: "/images/groom.jpg",
+      photo: "/images/groom.jpg?v=2",
       bio: "Software engineer & tech enthusiast yang menemukan pelabuhan hatinya."
     },
     bride: {
-      name: "Salma Anindya, S.Ds.",
-      nickname: "Salma",
+      name: "Xaviera Putri, Bachelor of Science (B.Sc.).",
+      nickname: "Xaviera",
       father: "Bpk. Bambang Sudiro, M.M.",
       mother: "Ibu Ratna Dewi",
       order: "Putri kedua dari",
       instagram: "salma.anindya",
       instagramUrl: "https://instagram.com",
-      photo: "/images/bride.jpg",
+      photo: "/images/bride.jpg?v=2",
       bio: "Visual designer & creative soul pencinta kopi hangat dan seni kontemporer."
     },
-    hashtag: "#RidwanSalmaForever",
+    hashtag: "#RidwanXavieraForever",
     songTitle: "Rizky Febian & Mahalini – Bermuara",
     audioSrc: "/audio/bermuara.m4a",
     heroImage: "/images/hero_desktop.jpg",
     coverImage: "/images/couple_cover.jpg",
   },
   
-  eventDate: "2026-11-14T08:00:00+07:00", // Sabtu, 14 November 2026
-  eventDateFormatted: "Sabtu, 14 November 2026",
+  eventDate: "2027-02-02T08:00:00+07:00", // Selasa, 2 Februari 2027
+  eventDateFormatted: "Selasa, 2 Februari 2027",
   
   verse: {
     surah: "QS. Ar-Rum Ayat 21",
@@ -42,50 +42,41 @@ export const weddingData = {
     {
       id: "akad",
       title: "Akad Nikah",
-      date: "Sabtu, 14 November 2026",
+      date: "Selasa, 2 Februari 2027",
       time: "08:00 - 10:00 WIB",
-      venue: "Masjid Agung Al-Hikmah & Pavilion",
-      address: "Jl. Jenderal Sudirman No. 88, Karet Semanggi, Jakarta Selatan",
+      venue: "Kediaman Mempelai / Lokasi Acara",
+      address: "Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124 (Plus Code: VM2C+JWP)",
       icon: "Heart",
-      tag: "Intimate Ceremony"
+      tag: "Akad Nikah"
     },
     {
       id: "resepsi-1",
       title: "Resepsi Pernikahan (Sesi 1)",
-      date: "Sabtu, 14 November 2026",
+      date: "Selasa, 2 Februari 2027",
       time: "11:00 - 14:00 WIB",
-      venue: "The Grand Heritage Ballroom, Grand Hyatt Jakarta",
-      address: "Jl. M.H. Thamrin Kav. 28-30, Menteng, Jakarta Pusat",
+      venue: "Lokasi Acara Pernikahan",
+      address: "Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124",
       icon: "Sparkles",
-      tag: "Family & VIP Guests"
+      tag: "Keluarga & Sahabat"
     },
     {
       id: "resepsi-2",
       title: "Resepsi Pernikahan (Sesi 2)",
-      date: "Sabtu, 14 November 2026",
+      date: "Selasa, 2 Februari 2027",
       time: "18:30 - 21:00 WIB",
-      venue: "The Grand Heritage Ballroom, Grand Hyatt Jakarta",
-      address: "Jl. M.H. Thamrin Kav. 28-30, Menteng, Jakarta Pusat",
+      venue: "Lokasi Acara Pernikahan",
+      address: "Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124",
       icon: "Music",
-      tag: "Friends & Colleagues Celebration"
+      tag: "Ramah Tamah & Doa Restu"
     }
   ],
 
   map: {
-    embedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.621422894541!2d106.8211029758784!3d-6.181395993806132!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f4277712e5c9%3A0xe54e5b66d8fbf4f2!2sGrand%20Hyatt%20Jakarta!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid",
-    googleMapsUrl: "https://maps.app.goo.gl/grandhyattjakarta",
-    wazeUrl: "https://waze.com/ul?ll=-6.181396,106.821103&navigate=yes",
-  },
-
-  dresscode: {
-    palette: [
-      { name: "Sage Green", hex: "#7A9A8B" },
-      { name: "Emerald", hex: "#1C2A24" },
-      { name: "Muted Gold", hex: "#C5A059" },
-      { name: "Champagne", hex: "#E9DECB" },
-      { name: "Soft Ivory", hex: "#FAF8F5" }
-    ],
-    note: "Pakaian Formal / Batik Modern / Gaun bernuansa Botanical Earth Tone & Muted Gold. Mohon untuk menghindari busana berwarna putih polos."
+    embedUrl: "https://maps.google.com/maps?q=-6.1484167,106.6723332&hl=id&z=17&output=embed",
+    googleMapsUrl: "https://maps.app.goo.gl/vQv6ivHVWf2eFj1b9",
+    wazeUrl: "https://waze.com/ul?ll=-6.1484167,106.6723332&navigate=yes",
+    address: "Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124",
+    venueName: "Jl. KH. Mursan, Benda, Kota Tangerang"
   },
 
   liveStream: {
@@ -111,19 +102,53 @@ export const weddingData = {
       desc: "Di hadapan kedua keluarga besar, Ridwan meminang Salma. Rasa haru dan bahagia mengalir ketika kedua hati saling bersumpah untuk merajut masa depan di bawah ridho Illahi."
     },
     {
-      year: "November 2026",
+      year: "Februari 2027",
       title: "Menuju Pelaminan",
       desc: "Hari yang dinanti telah tiba. Bersama doa restu orang tua dan para sahabat tercinta, kami memulai lembaran baru sebagai sepasang suami-istri yang sakinah, mawaddah, warahmah."
     }
   ],
 
   gallery: [
-    { id: 1, src: "/images/gallery_1.jpg", title: "Cinta Dalam Tatapan", category: "Prewedding Studio" },
-    { id: 2, src: "/images/gallery_2.jpg", title: "Langkah Bersama", category: "Outdoor Sunset" },
-    { id: 3, src: "/images/gallery_3.jpg", title: "Simbol Janji Suci", category: "Detail Cincin" },
-    { id: 4, src: "/images/gallery_4.jpg", title: "Tawa & Harapan", category: "Casual Portrait" },
-    { id: 5, src: "/images/gallery_5.jpg", title: "Genggaman Kasih", category: "Intimate Moment" },
-    { id: 6, src: "/images/gallery_6.jpg", title: "Senja di Pelukanmu", category: "Golden Hour" },
+    {
+      id: 1,
+      src: "/images/gallery_tea_garden.jpg",
+      title: "Langkah Bersama di Kebun Teh",
+      category: "Kebun Teh",
+      gridClass: "col-span-1",
+      aspectClass: "aspect-[3/4] md:aspect-[4/5]",
+    },
+    {
+      id: 2,
+      src: "/images/gallery_beach.jpg",
+      title: "Menatap Senja di Pesisir Pantai",
+      category: "Pantai Sunset",
+      gridClass: "col-span-1",
+      aspectClass: "aspect-[3/4] md:aspect-[4/5]",
+    },
+    {
+      id: 3,
+      src: "/images/gallery_3.jpg",
+      title: "Simbol Janji Suci",
+      category: "Detail Cincin",
+      gridClass: "col-span-1",
+      aspectClass: "aspect-square md:aspect-[4/5]",
+    },
+    {
+      id: 4,
+      src: "/images/gallery_5.jpg",
+      title: "Genggaman Kasih & Cincin Abadi",
+      category: "Ikatan Kasih",
+      gridClass: "col-span-1",
+      aspectClass: "aspect-square md:aspect-[4/5]",
+    },
+    {
+      id: 5,
+      src: "/images/gallery_merbabu.jpg",
+      title: "Puncak Merbabu Kenteng Songo (3122 MDPL)",
+      category: "Petualangan Berdua",
+      gridClass: "col-span-2 md:col-span-2",
+      aspectClass: "aspect-[16/9] md:aspect-auto",
+    },
   ],
 
   preweddingVideo: {
@@ -228,3 +253,36 @@ export const weddingData = {
     }
   ]
 };
+
+export const INITIAL_EXCEL_GUESTS = [
+  { id: 'g-1', name: 'Suparjo', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-2', name: 'Budi Santoso', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-3', name: 'Dr. Hendra Kusuma, Sp.A', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-4', name: 'Siti Aminah, S.Pd.', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-5', name: 'Rizky Pratama', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-6', name: 'Agus Setiawan', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-7', name: 'Dewi Lestari', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-8', name: 'Bambang Hermawan', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-9', name: 'Rina Wulandari', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-10', name: 'Fajar Ramadhan', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-11', name: 'Wahyu Hidayat', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-12', name: 'Sri Rahayu', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-13', name: 'Dedi Mulyadi', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-14', name: 'Nurul Aini', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-15', name: 'H. Ahmad Syarifuddin', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-16', name: 'Bayu Wicaksono', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-17', name: 'Endang Purwanti', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-18', name: 'Ir. Gunawan Wibowo', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-19', name: 'Tri Utami', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-20', name: 'Arif Rahman Hakim', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-21', name: 'Fitri Handayani', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-22', name: 'Joko Prasetyo', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-23', name: 'Yuni Astuti', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-24', name: 'Eko Prasetyo', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-25', name: 'Anisa Rahmawati', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-26', name: 'M. Firdaus', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-27', name: 'Ratna Sari Dewi', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-28', name: 'Drs. Sunaryo, M.M.', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-29', name: 'Maya Indah Permata', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false },
+  { id: 'g-30', name: 'Hendra Saputra', pax: 2, rsvp: 'Belum Konfirmasi', isSent: false }
+];

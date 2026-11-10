@@ -59,7 +59,7 @@ export default function DesktopLeftPanel({
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-botanical-emerald/60 hover:bg-botanical-emerald border border-botanical-gold/40 text-botanical-gold-light text-xs font-medium backdrop-blur-md transition-all hover:scale-105"
         >
           <ShieldCheck className="w-3.5 h-3.5 text-botanical-gold" />
-          <span>Admin &amp; Resepsionis</span>
+          <span>Panel Admin</span>
         </button>
       </div>
 
@@ -76,12 +76,12 @@ export default function DesktopLeftPanel({
         <div className="flex items-center gap-6 text-sm text-gray-200 mb-8 font-light">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-botanical-gold" />
-            <span>Sabtu, 14 November 2026</span>
+            <span>Selasa, 2 Februari 2027</span>
           </div>
           <div className="h-4 w-[1px] bg-botanical-gold/40" />
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-botanical-gold" />
-            <span>Grand Hyatt, Jakarta</span>
+            <span>Benda, Kota Tangerang</span>
           </div>
         </div>
 

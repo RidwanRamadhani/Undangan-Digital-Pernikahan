@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import QRCode from 'qrcode';
+import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { CheckCircle2, QrCode, Download, Send, User, Users, Calendar, Sparkles } from 'lucide-react';
+import { CheckCircle2, Send, User, Users, Calendar, Heart, Phone, Sparkles, RefreshCw } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 
-export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onNewRsvp }) {
+export default function RsvpSection({ guestName, maxPax = 2, onToast, onNewRsvp }) {
   const [formData, setFormData] = useState({
     name: guestName || '',
     whatsapp: '',
@@ -15,9 +14,7 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [ticketData, setTicketData] = useState(null);
-  const [qrDataUrl, setQrDataUrl] = useState('');
-  const ticketRef = useRef(null);
+  const [submittedData, setSubmittedData] = useState(null);
 
   useEffect(() => {
     if (guestName) {
@@ -25,7 +22,7 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
     }
   }, [guestName]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
@@ -33,51 +30,105 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
       return;
     }
 
-    const uniqueSlug = 'RSVP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const uniqueId = 'RSVP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const rsvpStatus = formData.attendance === 'attending' 
+      ? 'Hadir' 
+      : (formData.attendance === 'not_attending' ? 'Berhalangan' : 'Ragu-ragu');
+
     const submission = {
-      ...formData,
-      slug: uniqueSlug,
-      isVip,
+      id: uniqueId,
+      name: formData.name.trim(),
+      whatsapp: formData.whatsapp ? formData.whatsapp.trim() : '',
+      phone: formData.whatsapp ? formData.whatsapp.trim() : '',
+      attendance: formData.attendance,
+      rsvp: rsvpStatus,
+      pax: Number(formData.pax) || 1,
+      session: formData.session,
+      note: formData.note ? formData.note.trim() : '',
+      slug: uniqueId,
       submittedAt: new Date().toISOString()
     };
 
+    // 1. Simpan ke wedding_guests (update jika nama sudah ada)
     const savedGuests = JSON.parse(localStorage.getItem('wedding_guests') || '[]');
-    savedGuests.unshift(submission);
+    const existingRsvpIdx = savedGuests.findIndex(
+      g => g.name && g.name.trim().toLowerCase() === submission.name.toLowerCase()
+    );
+    if (existingRsvpIdx !== -1) {
+      savedGuests[existingRsvpIdx] = submission;
+    } else {
+      savedGuests.unshift(submission);
+    }
     localStorage.setItem('wedding_guests', JSON.stringify(savedGuests));
+
+    // 2. Sinkronkan LANGSUNG ke admin_guest_list (Dashboard Admin)
+    const existingAdminGuests = JSON.parse(localStorage.getItem('admin_guest_list') || '[]');
+    const adminMatchIdx = existingAdminGuests.findIndex(
+      g => g.name && g.name.trim().toLowerCase() === submission.name.toLowerCase()
+    );
+
+    if (adminMatchIdx !== -1) {
+      existingAdminGuests[adminMatchIdx] = {
+        ...existingAdminGuests[adminMatchIdx],
+        rsvp: rsvpStatus,
+        pax: submission.pax,
+        session: submission.session,
+        note: submission.note,
+        phone: submission.whatsapp || existingAdminGuests[adminMatchIdx].phone || '',
+        updatedAt: submission.submittedAt
+      };
+    } else {
+      existingAdminGuests.unshift({
+        id: uniqueId,
+        name: submission.name,
+        phone: submission.whatsapp || '',
+        pax: submission.pax,
+        rsvp: rsvpStatus,
+        session: submission.session,
+        note: submission.note,
+        slug: uniqueId,
+        submittedAt: submission.submittedAt
+      });
+    }
+    localStorage.setItem('admin_guest_list', JSON.stringify(existingAdminGuests));
+
+    // 3. Simpan juga pesan doa restu ke Wishes Wall bila diisi
+    if (submission.note) {
+      try {
+        const savedWishes = JSON.parse(localStorage.getItem('wedding_wishes') || '[]');
+        const wishExists = savedWishes.some(
+          w => w.senderName && w.senderName.trim().toLowerCase() === submission.name.toLowerCase() && w.message.trim() === submission.note
+        );
+        if (!wishExists) {
+          savedWishes.unshift({
+            id: 'wish-rsvp-' + Date.now(),
+            senderName: submission.name,
+            attendanceBadge: rsvpStatus,
+            message: submission.note,
+            createdAt: 'Baru saja'
+          });
+          localStorage.setItem('wedding_wishes', JSON.stringify(savedWishes));
+          window.dispatchEvent(new Event('wedding_wishes_updated'));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // 4. Picu global event agar panel admin langsung merender data terbaru
+    window.dispatchEvent(new Event('wedding_guest_updated'));
 
     if (onNewRsvp) {
       onNewRsvp(submission);
     }
 
-    const qrPayload = JSON.stringify({
-      code: uniqueSlug,
-      name: formData.name,
-      pax: formData.pax,
-      session: formData.session,
-      vip: isVip
-    });
-
-    try {
-      const url = await QRCode.toDataURL(qrPayload, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#1C2A24',
-          light: '#FFFFFF',
-        },
-      });
-      setQrDataUrl(url);
-    } catch (err) {
-      console.error('QR Code error:', err);
-    }
-
-    setTicketData(submission);
+    setSubmittedData(submission);
     setIsSubmitted(true);
 
     if (formData.attendance === 'attending') {
       confetti({
-        particleCount: 120,
-        spread: 80,
+        particleCount: 90,
+        spread: 70,
         origin: { y: 0.6 },
         colors: ['#C5A059', '#1C2A24', '#FAF8F5', '#E7D1A2']
       });
@@ -85,105 +136,34 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
 
     if (onToast) {
       onToast({
-        title: 'Konfirmasi Terkirim',
-        message: 'Terima kasih, konfirmasi kehadiran Anda telah berhasil kami catat!'
+        title: 'Konfirmasi Diterima',
+        message: 'Terima kasih, konfirmasi kehadiran Anda telah berhasil kami catat.'
       });
     }
   };
 
-  const handleDownloadTicket = () => {
-    if (!ticketData || !qrDataUrl) return;
+  const getSessionLabel = (session) => {
+    switch (session) {
+      case 'akad':
+        return 'Akad Nikah (08:00 WIB)';
+      case 'resepsi-2':
+        return 'Resepsi Sesi 2 (18:30 - 21:00 WIB)';
+      case 'resepsi-1':
+      default:
+        return 'Resepsi Sesi 1 (11:00 - 14:00 WIB)';
+    }
+  };
 
-    const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 840;
-    const ctx = canvas.getContext('2d');
-
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, 840);
-    bgGrad.addColorStop(0, '#1C2A24');
-    bgGrad.addColorStop(1, '#121D18');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, 600, 840);
-
-    ctx.strokeStyle = '#C5A059';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(20, 20, 560, 800);
-
-    ctx.strokeStyle = 'rgba(197, 160, 89, 0.4)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(28, 28, 544, 784);
-
-    ctx.fillStyle = '#C5A059';
-    ctx.font = 'italic 28px serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('The Wedding of', 300, 75);
-
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 36px serif';
-    ctx.fillText('Ridwan & Salma', 300, 120);
-
-    ctx.fillStyle = '#E7D1A2';
-    ctx.font = '14px sans-serif';
-    ctx.fillText('OFFICIAL GUEST PASS / E-TICKET', 300, 150);
-
-    ctx.strokeStyle = 'rgba(197, 160, 89, 0.5)';
-    ctx.beginPath();
-    ctx.moveTo(60, 175);
-    ctx.lineTo(540, 175);
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.fillRect(60, 195, 480, 180);
-    ctx.strokeStyle = 'rgba(197, 160, 89, 0.3)';
-    ctx.strokeRect(60, 195, 480, 180);
-
-    ctx.fillStyle = '#C5A059';
-    ctx.font = '13px sans-serif';
-    ctx.fillText('NAMA TAMU / GUEST NAME', 300, 225);
-
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 26px sans-serif';
-    ctx.fillText(ticketData.name, 300, 260);
-
-    ctx.fillStyle = '#E7D1A2';
-    ctx.font = '15px sans-serif';
-    ctx.fillText(`Kuota: ${ticketData.pax} Orang | Sesi: ${ticketData.session.toUpperCase()}`, 300, 295);
-
-    ctx.fillStyle = '#9E7D3B';
-    ctx.font = 'bold 16px monospace';
-    ctx.fillText(`KODE PASS: ${ticketData.slug}`, 300, 335);
-
-    const qrImg = new Image();
-    qrImg.onload = () => {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(175, 400, 250, 250);
-      ctx.drawImage(qrImg, 185, 410, 230, 230);
-
-      ctx.fillStyle = '#E7D1A2';
-      ctx.font = '13px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Tunjukkan QR Code ini di meja resepsionis', 300, 690);
-
-      ctx.fillStyle = '#A0A0A0';
-      ctx.font = '12px sans-serif';
-      ctx.fillText('Sabtu, 14 November 2026 • Grand Hyatt Jakarta', 300, 720);
-
-      const pngUrl = canvas.toDataURL('image/png');
-      const dlLink = document.createElement('a');
-      dlLink.href = pngUrl;
-      dlLink.download = `E-Ticket-RidwanSalma-${ticketData.slug}.png`;
-      document.body.appendChild(dlLink);
-      dlLink.click();
-      document.body.removeChild(dlLink);
-
-      if (onToast) {
-        onToast({
-          title: 'Tiket Berhasil Diunduh',
-          message: 'Simpan tiket QR di galeri HP Anda untuk registrasi di lokasi.'
-        });
-      }
-    };
-    qrImg.src = qrDataUrl;
+  const getAttendanceLabel = (status) => {
+    switch (status) {
+      case 'attending':
+        return 'Insya Allah Hadir';
+      case 'not_attending':
+        return 'Mohon Maaf Berhalangan';
+      case 'tentative':
+      default:
+        return 'Masih Belum Pasti';
+    }
   };
 
   return (
@@ -193,7 +173,7 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
           Konfirmasi Kehadiran
         </span>
         <h2 className="font-serif text-3xl md:text-4xl font-semibold text-botanical-obsidian mt-1 mb-2">
-          Reservasi &amp; E-Ticket
+          Reservasi Kehadiran
         </h2>
         <p className="text-xs text-botanical-muted max-w-sm mx-auto leading-relaxed">
           Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir memberikan doa restu.
@@ -206,13 +186,6 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
             onSubmit={handleSubmit}
             className="p-6 md:p-8 rounded-3xl glass-card border border-botanical-gold/30 shadow-xl space-y-5"
           >
-            {isVip && (
-              <div className="p-3 rounded-2xl bg-botanical-champagne border border-botanical-gold/40 flex items-center gap-2.5 text-xs text-botanical-emerald">
-                <Sparkles className="w-4 h-4 text-botanical-gold-dark shrink-0" />
-                <span>Undangan VIP: Kuota reservasi diprioritaskan khusus untuk Anda.</span>
-              </div>
-            )}
-
             <div>
               <label className="block text-xs font-semibold text-botanical-obsidian mb-1.5 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-botanical-gold-dark" />
@@ -229,8 +202,9 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-botanical-obsidian mb-1.5">
-                No. WhatsApp (Untuk Pengiriman E-Ticket)
+              <label className="block text-xs font-semibold text-botanical-obsidian mb-1.5 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-botanical-gold-dark" />
+                <span>No. WhatsApp (Opsional)</span>
               </label>
               <input
                 type="tel"
@@ -280,7 +254,9 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
                     className="w-full px-3 py-2.5 rounded-xl bg-white/90 border border-botanical-gold/30 focus:outline-none focus:ring-2 focus:ring-botanical-gold text-xs text-botanical-obsidian shadow-inner"
                   >
                     <option value={1}>1 Orang</option>
-                    <option value={2}>2 Orang (Maksimal)</option>
+                    <option value={2}>2 Orang</option>
+                    <option value={3}>3 Orang</option>
+                    <option value={4}>4 Orang</option>
                   </select>
                 </div>
 
@@ -294,7 +270,7 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
                     onChange={(e) => setFormData({ ...formData, session: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl bg-white/90 border border-botanical-gold/30 focus:outline-none focus:ring-2 focus:ring-botanical-gold text-xs text-botanical-obsidian shadow-inner"
                   >
-                    <option value="akad">Akad Saja (08:00)</option>
+                    <option value="akad">Akad Nikah (08:00)</option>
                     <option value="resepsi-1">Resepsi Sesi 1 (11:00)</option>
                     <option value="resepsi-2">Resepsi Sesi 2 (18:30)</option>
                   </select>
@@ -304,13 +280,13 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
 
             <div>
               <label className="block text-xs font-semibold text-botanical-obsidian mb-1.5">
-                Pesan Khusus (Opsional)
+                Ucapan &amp; Doa Restu (Opsional)
               </label>
               <textarea
-                rows={2}
+                rows={3}
                 value={formData.note}
                 onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                placeholder="Tuliskan ucapan atau catatan untuk pengantin..."
+                placeholder="Tuliskan ucapan atau doa restu untuk kedua mempelai..."
                 className="w-full px-4 py-2.5 rounded-xl bg-white/90 border border-botanical-gold/30 focus:outline-none focus:ring-2 focus:ring-botanical-gold text-xs text-botanical-obsidian shadow-inner"
               />
             </div>
@@ -324,66 +300,75 @@ export default function RsvpSection({ guestName, isVip, maxPax = 2, onToast, onN
             </button>
           </form>
         ) : (
-          <div className="p-6 md:p-8 rounded-3xl glass-dark text-white border border-botanical-gold shadow-2xl relative overflow-hidden text-center animate-fade-in">
-            <div className="w-12 h-12 rounded-full bg-botanical-gold/20 border border-botanical-gold text-botanical-gold flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-6 h-6" />
+          <div className="p-7 md:p-9 rounded-3xl glass-dark text-white border border-botanical-gold/60 shadow-2xl relative overflow-hidden text-center animate-fade-in">
+            {/* Ambient gold glow */}
+            <div className="w-14 h-14 rounded-full bg-botanical-gold/20 border border-botanical-gold text-botanical-gold flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <CheckCircle2 className="w-7 h-7" />
             </div>
 
             <span className="text-[11px] uppercase tracking-widest text-botanical-gold font-semibold">
-              Konfirmasi Berhasil Diterima
+              Konfirmasi Berhasil Tersimpan
             </span>
 
-            <h3 className="font-serif text-2xl font-bold text-white mt-1 mb-2">
-              Kartu Akses QR / E-Ticket
+            <h3 className="font-serif text-2xl md:text-3xl font-bold text-white mt-1 mb-3">
+              Terima Kasih Banyak!
             </h3>
 
-            <p className="text-xs text-gray-300 max-w-sm mx-auto mb-6">
-              Terima kasih atas konfirmasinya, <strong className="text-botanical-gold-light">{ticketData.name}</strong>. Simpan kartu pass QR Code berikut untuk registrasi cepat di meja resepsionis.
+            <p className="text-xs text-gray-200 max-w-md mx-auto mb-6 leading-relaxed">
+              Konfirmasi kehadiran Anda, <strong className="text-botanical-gold-light">{submittedData.name}</strong>, telah tersimpan rapi dalam daftar tamu kami. Kami sangat berbahagia dan menantikan kehadiran Anda di hari istimewa kami.
             </p>
 
-            <div
-              ref={ticketRef}
-              className="p-6 rounded-2xl bg-botanical-emerald-dark/80 border border-botanical-gold/40 shadow-inner max-w-sm mx-auto mb-6"
+            {/* Ringkasan Konfirmasi */}
+            <div className="p-5 rounded-2xl bg-botanical-emerald-dark/80 border border-botanical-gold/30 text-left max-w-md mx-auto mb-6 space-y-2.5">
+              <div className="flex items-center justify-between pb-2 border-b border-botanical-gold/20">
+                <span className="text-xs text-gray-400">Nama Tamu</span>
+                <span className="text-xs font-bold text-white">{submittedData.name}</span>
+              </div>
+
+              <div className="flex items-center justify-between pb-2 border-b border-botanical-gold/20">
+                <span className="text-xs text-gray-400">Status Kehadiran</span>
+                <span className="text-xs font-semibold text-botanical-gold-light">
+                  {getAttendanceLabel(submittedData.attendance)}
+                </span>
+              </div>
+
+              {submittedData.attendance === 'attending' && (
+                <>
+                  <div className="flex items-center justify-between pb-2 border-b border-botanical-gold/20">
+                    <span className="text-xs text-gray-400">Jumlah Tamu</span>
+                    <span className="text-xs font-semibold text-white">{submittedData.pax} Orang</span>
+                  </div>
+
+                  <div className="flex items-center justify-between pb-2 border-b border-botanical-gold/20">
+                    <span className="text-xs text-gray-400">Sesi Acara</span>
+                    <span className="text-xs font-medium text-gray-200">{getSessionLabel(submittedData.session)}</span>
+                  </div>
+                </>
+              )}
+
+              {submittedData.note && (
+                <div className="pt-1">
+                  <span className="text-[11px] text-gray-400 block mb-1">Pesan / Doa:</span>
+                  <p className="text-xs italic text-gray-200 bg-white/5 p-2.5 rounded-lg border border-white/10">
+                    "{submittedData.note}"
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-botanical-gold-light mb-6 font-serif italic">
+              <Sparkles className="w-3.5 h-3.5 text-botanical-gold" />
+              <span>Selasa, 2 Februari 2027 • Benda, Kota Tangerang</span>
+              <Sparkles className="w-3.5 h-3.5 text-botanical-gold" />
+            </div>
+
+            <button
+              onClick={() => setIsSubmitted(false)}
+              className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/25 transition-all hover:scale-102"
             >
-              <p className="font-serif text-sm italic text-botanical-gold">The Wedding of Ridwan &amp; Salma</p>
-              <p className="text-xs text-gray-300 mb-3">Sabtu, 14 November 2026 • Grand Hyatt Jakarta</p>
-
-              <div className="w-48 h-48 bg-white p-3 rounded-2xl mx-auto my-3 shadow-md border-2 border-botanical-gold flex items-center justify-center">
-                {qrDataUrl ? (
-                  <img src={qrDataUrl} alt="QR Code E-Ticket" className="w-full h-full object-contain" />
-                ) : (
-                  <QrCode className="w-24 h-24 text-botanical-emerald animate-pulse" />
-                )}
-              </div>
-
-              <div className="text-xs space-y-1 mt-3">
-                <p className="font-semibold text-white text-sm">{ticketData.name}</p>
-                <p className="text-gray-300">
-                  Status: <span className="text-botanical-gold font-medium">Terkonfirmasi ({ticketData.pax} Orang)</span>
-                </p>
-                <p className="text-gray-400 text-[11px]">Sesi: {ticketData.session.toUpperCase()}</p>
-                <p className="font-mono text-botanical-gold-light text-xs mt-2 tracking-wider">
-                  PASS CODE: {ticketData.slug}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-sm mx-auto">
-              <button
-                onClick={handleDownloadTicket}
-                className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-botanical-gold hover:bg-botanical-gold-dark text-botanical-emerald-dark font-bold text-xs shadow-lg hover:scale-102 transition-all"
-              >
-                <Download className="w-4 h-4" />
-                <span>Unduh E-Ticket (PNG)</span>
-              </button>
-
-              <button
-                onClick={() => setIsSubmitted(false)}
-                className="py-3 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition-all"
-              >
-                Ubah Data
-              </button>
-            </div>
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Perbarui Jawaban</span>
+            </button>
           </div>
         )}
       </ScrollReveal>

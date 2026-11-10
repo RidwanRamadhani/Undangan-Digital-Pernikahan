@@ -29,6 +29,24 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
     }
   }, [guestName]);
 
+  // Real-time synchronization when RSVP form submits a wish
+  useEffect(() => {
+    const handleWishesUpdate = () => {
+      const saved = localStorage.getItem('wedding_wishes');
+      if (saved) {
+        try {
+          setWishes(JSON.parse(saved));
+        } catch (e) {}
+      }
+    };
+    window.addEventListener('wedding_wishes_updated', handleWishesUpdate);
+    window.addEventListener('storage', handleWishesUpdate);
+    return () => {
+      window.removeEventListener('wedding_wishes_updated', handleWishesUpdate);
+      window.removeEventListener('storage', handleWishesUpdate);
+    };
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 

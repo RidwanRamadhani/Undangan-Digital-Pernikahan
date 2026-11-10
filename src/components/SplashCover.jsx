@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { MailOpen, Sparkles, Crown, ShieldCheck } from 'lucide-react';
+import { MailOpen, Sparkles, ShieldCheck } from 'lucide-react';
 
-export default function SplashCover({ guestName, isVip, onOpenInvitation, isOpen, onOpenAdmin }) {
+export default function SplashCover({ guestName, onOpenInvitation, isOpen, onOpenAdmin }) {
   const [isClosing, setIsClosing] = useState(false);
 
   const handleOpen = () => {
@@ -39,10 +39,10 @@ export default function SplashCover({ guestName, isVip, onOpenInvitation, isOpen
       <button
         onClick={onOpenAdmin}
         className="absolute top-7 right-7 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-botanical-emerald/70 hover:bg-botanical-emerald border border-botanical-gold/40 text-botanical-gold-light text-[11px] font-medium backdrop-blur-md shadow-lg transition-transform active:scale-95"
-        title="Masuk ke Dashboard Admin & WO (Perlu PIN)"
+        title="Masuk ke Panel Admin (Perlu PIN)"
       >
         <ShieldCheck className="w-3.5 h-3.5 text-botanical-gold" />
-        <span>Admin &amp; WO</span>
+        <span>Panel Admin</span>
       </button>
 
       {/* Center Content Card */}
@@ -63,21 +63,13 @@ export default function SplashCover({ guestName, isVip, onOpenInvitation, isOpen
         <div className="flex items-center gap-3 my-3">
           <div className="h-[1px] w-12 bg-botanical-gold/50" />
           <span className="text-xs uppercase tracking-widest text-botanical-gold font-medium">
-            14 . 11 . 2026
+            02 . 02 . 2027
           </span>
           <div className="h-[1px] w-12 bg-botanical-gold/50" />
         </div>
 
         {/* Personalized Guest Box */}
         <div className="w-full mt-6 mb-8 p-5 rounded-2xl glass-dark border border-botanical-gold/30 shadow-2xl relative overflow-hidden backdrop-blur-md">
-          {/* VIP Badge */}
-          {isVip && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-botanical-gold/20 border border-botanical-gold text-botanical-gold-light text-xs font-semibold mb-2 shadow-sm">
-              <Crown className="w-3.5 h-3.5 text-botanical-gold" />
-              <span>VIP GUEST</span>
-            </div>
-          )}
-
           <p className="text-xs uppercase tracking-wider text-gray-300 font-light mb-1">
             Kepada Yth. Bapak/Ibu/Saudara/i:
           </p>

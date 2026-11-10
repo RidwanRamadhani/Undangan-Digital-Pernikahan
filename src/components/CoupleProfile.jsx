@@ -58,15 +58,16 @@ export default function CoupleProfile({ couple, verse }) {
         {/* Groom Card */}
         <ScrollReveal animation="left" delay={150}>
         <div className="flex flex-col items-center text-center p-6 rounded-3xl glass-card border border-botanical-gold/25 shadow-lg group hover:border-botanical-gold/60 transition-all">
-          <div className="w-44 h-56 arch-frame p-2 bg-gradient-to-b from-botanical-gold/40 to-botanical-champagne shadow-md mb-5 group-hover:scale-102 transition-transform duration-500">
-            <div className="w-full h-full arch-frame overflow-hidden bg-botanical-emerald">
-              <img
-                src={groom.photo}
-                alt={groom.name}
-                className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700"
-                loading="lazy"
-              />
-            </div>
+          <div
+            className="w-[160px] h-[215px] rounded-[50%/40%] overflow-hidden border-2 border-[#D4AF37] shadow-[0_10px_25px_-5px_rgba(0,0,0,0.08)] mb-5 group-hover:scale-105 transition-all duration-500 bg-botanical-emerald"
+            style={{ borderRadius: '50% / 40%' }}
+          >
+            <img
+              src={groom.photo}
+              alt={groom.name}
+              className="w-full h-full object-cover object-top group-hover:scale-108 transition-transform duration-700"
+              loading="lazy"
+            />
           </div>
 
           <h3 className="font-serif text-xl md:text-2xl font-bold text-botanical-emerald mb-1">
@@ -101,15 +102,16 @@ export default function CoupleProfile({ couple, verse }) {
         {/* Bride Card */}
         <ScrollReveal animation="right" delay={250}>
         <div className="flex flex-col items-center text-center p-6 rounded-3xl glass-card border border-botanical-gold/25 shadow-lg group hover:border-botanical-gold/60 transition-all">
-          <div className="w-44 h-56 arch-frame p-2 bg-gradient-to-b from-botanical-gold/40 to-botanical-champagne shadow-md mb-5 group-hover:scale-102 transition-transform duration-500">
-            <div className="w-full h-full arch-frame overflow-hidden bg-botanical-emerald">
-              <img
-                src={bride.photo}
-                alt={bride.name}
-                className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700"
-                loading="lazy"
-              />
-            </div>
+          <div
+            className="w-[160px] h-[215px] rounded-[50%/40%] overflow-hidden border-2 border-[#D4AF37] shadow-[0_10px_25px_-5px_rgba(0,0,0,0.08)] mb-5 group-hover:scale-105 transition-all duration-500 bg-botanical-emerald"
+            style={{ borderRadius: '50% / 40%' }}
+          >
+            <img
+              src={bride.photo}
+              alt={bride.name}
+              className="w-full h-full object-cover object-top group-hover:scale-108 transition-transform duration-700"
+              loading="lazy"
+            />
           </div>
 
           <h3 className="font-serif text-xl md:text-2xl font-bold text-botanical-emerald mb-1">

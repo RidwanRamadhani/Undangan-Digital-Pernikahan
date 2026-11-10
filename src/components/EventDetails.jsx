@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, Navigation, Video, Sparkles, Check, Copy } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 
-export default function EventDetails({ events, map, dresscode, liveStream, onToast }) {
+export default function EventDetails({ events, map, liveStream, onToast }) {
   const [copiedAddress, setCopiedAddress] = useState(false);
 
   const handleCopyAddress = (address) => {
@@ -85,30 +85,6 @@ export default function EventDetails({ events, map, dresscode, liveStream, onToa
         ))}
       </div>
 
-      {/* Dresscode Guide */}
-      <ScrollReveal animation="scale" delay={150} className="max-w-xl mx-auto mb-10 p-6 rounded-3xl glass-card border border-botanical-gold/30 shadow-md text-center">
-        <h4 className="font-serif text-lg font-bold text-botanical-emerald mb-1">
-          Panduan Busana (Dresscode)
-        </h4>
-        <p className="text-xs text-botanical-muted mb-4 leading-relaxed">
-          {dresscode.note}
-        </p>
-
-        {/* Color Swatches */}
-        <div className="flex items-center justify-center gap-3 flex-wrap">
-          {dresscode.palette.map((color, idx) => (
-            <div key={idx} className="flex flex-col items-center gap-1.5">
-              <div
-                className="w-9 h-9 rounded-full shadow-md border-2 border-white ring-1 ring-botanical-gold/30 transform hover:scale-110 transition-transform"
-                style={{ backgroundColor: color.hex }}
-                title={color.name}
-              />
-              <span className="text-[10px] text-botanical-muted font-medium">{color.name}</span>
-            </div>
-          ))}
-        </div>
-      </ScrollReveal>
-
       {/* Google Maps & Navigation Card */}
       <ScrollReveal animation="fade-up" delay={200} className="max-w-xl mx-auto p-5 rounded-3xl glass-card border border-botanical-gold/30 shadow-xl overflow-hidden mb-8">
         <div className="flex items-center justify-between mb-3 px-1">
@@ -118,7 +94,7 @@ export default function EventDetails({ events, map, dresscode, liveStream, onToa
               Peta Lokasi Gedung
             </h4>
           </div>
-          <span className="text-[11px] text-botanical-gold-dark font-medium">Grand Hyatt Jakarta</span>
+          <span className="text-[11px] text-botanical-gold-dark font-medium">{map.venueName || "Benda, Kota Tangerang"}</span>
         </div>
 
         {/* Embedded Map */}

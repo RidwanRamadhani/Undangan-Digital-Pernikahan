@@ -50,18 +50,17 @@ export default function GallerySection({ gallery, preweddingVideo, onVideoPlaySt
       {/* Bento Grid Layout */}
       <div className="max-w-2xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-10">
         {gallery.map((photo, index) => {
-          const isSpanRow = index === 0 || index === 3;
           return (
             <ScrollReveal
               key={photo.id}
               animation="scale"
               delay={index * 100}
-              className={isSpanRow ? 'row-span-2' : ''}
+              className={photo.gridClass || ''}
             >
               <div
                 onClick={() => openLightbox(index)}
                 className={`group relative overflow-hidden rounded-2xl cursor-pointer shadow-md bg-botanical-emerald w-full h-full ${
-                  isSpanRow ? 'aspect-[3/4]' : 'aspect-square'
+                  photo.aspectClass || 'aspect-square'
                 }`}
               >
                 <img

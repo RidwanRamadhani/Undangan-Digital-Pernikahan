@@ -23,15 +23,12 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [guestName, setGuestName] = useState('');
-  const [isVip, setIsVip] = useState(false);
   const [maxPax, setMaxPax] = useState(2);
 
   // Read URL query parameters on load
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const toParam = params.get('to');
-    const vipParam = params.get('vip');
-    const catParam = params.get('cat');
     const paxParam = params.get('pax');
     const adminParam = params.get('admin');
 
@@ -43,10 +40,6 @@ export default function App() {
       if (metaTitle) {
         metaTitle.setAttribute('content', `The Wedding of Ridwan & Salma - Khusus untuk ${toParam}`);
       }
-    }
-
-    if (vipParam === 'true' || (catParam && catParam.toUpperCase() === 'VIP')) {
-      setIsVip(true);
     }
 
     if (paxParam && !isNaN(Number(paxParam))) {
@@ -108,7 +101,6 @@ export default function App() {
       {/* Splash Cover Overlay (Slide-Up on Click) */}
       <SplashCover
         guestName={guestName}
-        isVip={isVip}
         onOpenInvitation={handleOpenInvitation}
         isOpen={isInvitationOpen}
         onOpenAdmin={() => setIsAdminOpen(true)}
@@ -153,11 +145,10 @@ export default function App() {
           {/* Interactive Love Story Timeline */}
           <LoveStory story={weddingData.story} />
 
-          {/* Event Details, Dresscode & Maps */}
+          {/* Event Details & Maps */}
           <EventDetails
             events={weddingData.events}
             map={weddingData.map}
-            dresscode={weddingData.dresscode}
             liveStream={weddingData.liveStream}
             onToast={addToast}
           />
@@ -169,10 +160,9 @@ export default function App() {
             onVideoPlayStateChange={handleVideoPlayStateChange}
           />
 
-          {/* RSVP Form with Unique QR Code Ticket */}
+          {/* RSVP Form Konfirmasi Kehadiran */}
           <RsvpSection
             guestName={guestName}
-            isVip={isVip}
             maxPax={maxPax}
             onToast={addToast}
           />
@@ -216,7 +206,7 @@ export default function App() {
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-botanical-emerald/10 hover:bg-botanical-emerald hover:text-white text-botanical-emerald text-[11px] font-semibold transition-all"
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Panel WO &amp; Resepsionis</span>
+                <span>Panel Admin</span>
               </button>
               <p className="text-[10px] text-gray-400">
                 Crafted with Luxury &amp; Editorial Precision for Ridwan &amp; Salma Wedding

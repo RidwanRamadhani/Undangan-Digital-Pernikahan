@@ -28,9 +28,9 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
   // Google Calendar Link generator
   const getGoogleCalendarUrl = () => {
     const title = encodeURIComponent("The Wedding of Ridwan & Salma");
-    const details = encodeURIComponent("Akad Nikah & Resepsi Pernikahan Muhammad Ridwan & Salma Anindya di Grand Hyatt Jakarta.");
-    const location = encodeURIComponent("The Grand Heritage Ballroom, Grand Hyatt Jakarta, Jl. M.H. Thamrin Kav. 28-30, Jakarta Pusat");
-    const dates = "20261114T010000Z/20261114T140000Z";
+    const details = encodeURIComponent("Akad Nikah & Resepsi Pernikahan Muhammad Ridwan & Salma Anindya di Jl. KH. Mursan, Jurumudi Baru, Kec. Benda, Kota Tangerang.");
+    const location = encodeURIComponent("Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124");
+    const dates = "20270202T010000Z/20270202T140000Z";
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
   };
 
@@ -43,13 +43,13 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
       "BEGIN:VEVENT",
-      "UID:wedding-ridwan-salma-20261114@wedding.id",
-      "DTSTAMP:20261024T000000Z",
-      "DTSTART:20261114T010000Z",
-      "DTEND:20261114T140000Z",
+      "UID:wedding-ridwan-salma-20270202@wedding.id",
+      "DTSTAMP:20270202T000000Z",
+      "DTSTART:20270202T010000Z",
+      "DTEND:20270202T140000Z",
       "SUMMARY:The Wedding of Ridwan & Salma",
       "DESCRIPTION:Pernikahan Muhammad Ridwan & Salma Anindya. Kami sangat menantikan kehadiran Anda!",
-      "LOCATION:The Grand Heritage Ballroom, Grand Hyatt Jakarta",
+      "LOCATION:Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124",
       "STATUS:CONFIRMED",
       "BEGIN:VALARM",
       "TRIGGER:-P1D",
@@ -109,7 +109,7 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
               className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-botanical-emerald/80 border border-botanical-gold/50 text-botanical-gold-light text-[10px] font-semibold backdrop-blur-md shadow-md"
             >
               <ShieldCheck className="w-3 h-3 text-botanical-gold" />
-              <span>Admin &amp; Resepsionis</span>
+              <span>Panel Admin</span>
             </button>
           )}
         </div>
@@ -132,7 +132,7 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
             <div className="h-3 w-[1px] bg-botanical-gold/40" />
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-botanical-gold" />
-              <span>Grand Hyatt, Jakarta</span>
+              <span>Benda, Kota Tangerang</span>
             </div>
           </div>
 
@@ -217,7 +217,7 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
             Ridwan &amp; Salma
           </h2>
           <p className="text-xs text-botanical-muted max-w-xs mx-auto leading-relaxed mb-6">
-            Sabtu, 14 November 2026 • The Grand Heritage Ballroom, Grand Hyatt Jakarta
+            Selasa, 2 Februari 2027 • Benda, Kota Tangerang
           </p>
 
           {/* Quick Calendar Buttons on Desktop */}

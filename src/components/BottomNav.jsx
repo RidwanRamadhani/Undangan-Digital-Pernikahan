@@ -56,7 +56,7 @@ export default function BottomNav({ onOpenAdmin }) {
         <button
           onClick={onOpenAdmin}
           className="flex flex-col items-center justify-center p-1.5 sm:px-2 rounded-full text-botanical-gold bg-botanical-emerald/90 hover:bg-botanical-emerald transition-all shadow-sm border border-botanical-gold/40"
-          title="Panel Admin & Resepsionis (Dilindungi PIN)"
+          title="Panel Admin (Dilindungi PIN)"
         >
           <ShieldCheck className="w-4 h-4 text-botanical-gold" />
           <span className="hidden sm:inline text-[9px] font-bold text-botanical-gold mt-0.5">
