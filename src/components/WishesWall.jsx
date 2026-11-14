@@ -160,7 +160,7 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
                 rows={3}
                 required
                 maxLength={350}
-                placeholder="Tuliskan doa restu yang tulus untuk Ridwan & Salma..."
+                placeholder="Tuliskan doa restu yang tulus untuk Ridwan & Xaviera..."
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 className="w-full px-4 py-2.5 rounded-xl bg-white/90 border border-botanical-gold/30 focus:outline-none focus:ring-2 focus:ring-botanical-gold text-xs text-botanical-obsidian shadow-inner leading-relaxed"
@@ -225,7 +225,7 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
                   <div className="p-3 rounded-xl bg-botanical-champagne/70 border-l-2 border-botanical-gold mt-2">
                     <span className="text-[10px] font-bold text-botanical-emerald flex items-center gap-1 mb-0.5">
                       <Heart className="w-2.5 h-2.5 fill-botanical-gold text-botanical-gold" />
-                      <span>Balasan Ridwan &amp; Salma</span>
+                      <span>Balasan Ridwan &amp; Xaviera</span>
                     </span>
                     <p className="text-[11px] text-botanical-muted italic leading-relaxed">
                       {item.replyMessage}

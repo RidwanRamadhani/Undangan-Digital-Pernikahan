@@ -580,7 +580,7 @@ Assalamu'alaikum Warahmatullahi Wabarakatuh
 
 Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i untuk menghadiri hari bahagia pernikahan kami:
 
-✨ The Wedding of Ridwan & Salma ✨
+✨ The Wedding of Ridwan & Xaviera ✨
 📅 Hari/Tanggal: Selasa, 2 Februari 2027
 📍 Lokasi: Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124
 🗺️ Google Maps: https://maps.app.goo.gl/vQv6ivHVWf2eFj1b9
@@ -592,7 +592,7 @@ Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i
 
 Wassalamu'alaikum Warahmatullahi Wabarakatuh
 Kami yang berbahagia,
-Ridwan & Salma`;
+Ridwan & Xaviera`;
   };
 
   // Get WhatsApp Direct URL

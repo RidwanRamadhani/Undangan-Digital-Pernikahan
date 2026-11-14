@@ -17,7 +17,7 @@ export const weddingData = {
       father: "Bpk. Bambang Sudiro, M.M.",
       mother: "Ibu Ratna Dewi",
       order: "Putri kedua dari",
-      instagram: "salma.anindya",
+      instagram: "xaviera.putri",
       instagramUrl: "https://instagram.com",
       photo: "/images/bride.jpg?v=2",
       bio: "Visual designer & creative soul pencinta kopi hangat dan seni kontemporer."
@@ -82,7 +82,7 @@ export const weddingData = {
   liveStream: {
     youtubeUrl: "https://youtube.com/live",
     zoomMeetingId: "892 4810 2931",
-    zoomPasscode: "RIDWANSALMA"
+    zoomPasscode: "RIDWANXAVIERA"
   },
 
   story: [
@@ -99,7 +99,7 @@ export const weddingData = {
     {
       year: "Februari 2026",
       title: "Hari Lamaran",
-      desc: "Di hadapan kedua keluarga besar, Ridwan meminang Salma. Rasa haru dan bahagia mengalir ketika kedua hati saling bersumpah untuk merajut masa depan di bawah ridho Illahi."
+      desc: "Di hadapan kedua keluarga besar, Ridwan meminang Xaviera. Rasa haru dan bahagia mengalir ketika kedua hati saling bersumpah untuk merajut masa depan di bawah ridho Illahi."
     },
     {
       year: "Februari 2027",
@@ -155,7 +155,7 @@ export const weddingData = {
     title: "Cinematic Pre-Wedding Teaser",
     desc: "Kisah di balik layar dan perjalanan menuju hari sakral kami.",
     embedUrl: "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?controls=1&rel=0",
-    filterInstagramUrl: "https://instagram.com/ar/ridwansalmawedding"
+    filterInstagramUrl: "https://instagram.com/ar/ridwanxaviera"
   },
 
   bankAccounts: [
@@ -171,14 +171,16 @@ export const weddingData = {
       bank: "MANDIRI",
       bankName: "Bank Mandiri",
       accountNumber: "1330029481920",
-      accountHolder: "SALMA ANINDYA",
+      accountHolder: "XAVIERA PUTRI",
       color: "from-amber-900 to-yellow-950",
       badge: "Mempelai Wanita"
     }
   ],
 
+  qrisImage: "/images/qris.jpg",
+
   giftAddress: {
-    recipient: "Ridwan & Salma (Wedding Gift)",
+    recipient: "Ridwan & Xaviera (Wedding Gift)",
     phone: "+62 812-8888-9999",
     address: "Jl. Dahlia Pavilion No. 14, Menteng, Jakarta Pusat, DKI Jakarta 10350",
     notes: "Mohon mencantumkan nama pengirim pada label paket"
@@ -228,7 +230,7 @@ export const weddingData = {
       id: "wish-1",
       senderName: "Budi Santoso & Keluarga",
       attendanceBadge: "Hadir",
-      message: "Barakallahu lakuma wa baraka 'alaikuma wa jama'a bainakuma fii khair. Selamat untuk Ridwan dan Salma! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah.",
+      message: "Barakallahu lakuma wa baraka 'alaikuma wa jama'a bainakuma fii khair. Selamat untuk Ridwan dan Xaviera! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah.",
       replyMessage: "Aamiin ya Rabbal 'alamin. Terima kasih banyak Mas Budi dan keluarga atas doa restunya. Ditunggu kehadirannya ya!",
       isPinned: true,
       createdAt: "2 jam yang lalu"
@@ -237,7 +239,7 @@ export const weddingData = {
       id: "wish-2",
       senderName: "Rian Prasetyo & Partner",
       attendanceBadge: "Hadir",
-      message: "Selamat ya Wan! Dari zaman ngoding bareng tugas akhir akhirnya sah juga sama Salma. Semoga lancar sampai hari H!",
+      message: "Selamat ya Wan! Dari zaman ngoding bareng tugas akhir akhirnya sah juga sama Xaviera. Semoga lancar sampai hari H!",
       replyMessage: "Thanks banget bro Rian! Jangan lupa datang tepat waktu pas resepsi sesi 2 ya!",
       isPinned: false,
       createdAt: "5 jam yang lalu"
@@ -246,7 +248,7 @@ export const weddingData = {
       id: "wish-3",
       senderName: "Clarissa Wijaya",
       attendanceBadge: "Berhalangan",
-      message: "Happy wedding Salma sayang & Ridwan! Maaf banget belum bisa hadir langsung karena masih ada dinas luar kota. Doa terbaik untuk kalian berdua bahagia selalu!",
+      message: "Happy wedding Xaviera sayang & Ridwan! Maaf banget belum bisa hadir langsung karena masih ada dinas luar kota. Doa terbaik untuk kalian berdua bahagia selalu!",
       replyMessage: "Terima kasih banyak Clarissa cantik! Tetap semangat dinasnya yaa.",
       isPinned: false,
       createdAt: "1 hari yang lalu"

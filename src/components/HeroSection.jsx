@@ -27,8 +27,8 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
 
   // Google Calendar Link generator
   const getGoogleCalendarUrl = () => {
-    const title = encodeURIComponent("The Wedding of Ridwan & Salma");
-    const details = encodeURIComponent("Akad Nikah & Resepsi Pernikahan Muhammad Ridwan & Salma Anindya di Jl. KH. Mursan, Jurumudi Baru, Kec. Benda, Kota Tangerang.");
+    const title = encodeURIComponent("The Wedding of Ridwan & Xaviera");
+    const details = encodeURIComponent("Akad Nikah & Resepsi Pernikahan Muhammad Ridwan & Xaviera Putri di Jl. KH. Mursan, Jurumudi Baru, Kec. Benda, Kota Tangerang.");
     const location = encodeURIComponent("Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124");
     const dates = "20270202T010000Z/20270202T140000Z";
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
@@ -39,21 +39,21 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
     const icsData = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//Ridwan and Salma Wedding//ID",
+      "PRODID:-//Ridwan and Xaviera Wedding//ID",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
       "BEGIN:VEVENT",
-      "UID:wedding-ridwan-salma-20270202@wedding.id",
+      "UID:wedding-ridwan-xaviera-20270202@wedding.id",
       "DTSTAMP:20270202T000000Z",
       "DTSTART:20270202T010000Z",
       "DTEND:20270202T140000Z",
-      "SUMMARY:The Wedding of Ridwan & Salma",
-      "DESCRIPTION:Pernikahan Muhammad Ridwan & Salma Anindya. Kami sangat menantikan kehadiran Anda!",
+      "SUMMARY:The Wedding of Ridwan & Xaviera",
+      "DESCRIPTION:Pernikahan Muhammad Ridwan & Xaviera Putri. Kami sangat menantikan kehadiran Anda!",
       "LOCATION:Jl. KH. Mursan, RT.002/RW.001, Jurumudi Baru, Kec. Benda, Kota Tangerang, Banten 15124",
       "STATUS:CONFIRMED",
       "BEGIN:VALARM",
       "TRIGGER:-P1D",
-      "DESCRIPTION:Pengingat: Besok adalah hari pernikahan Ridwan & Salma",
+      "DESCRIPTION:Pengingat: Besok adalah hari pernikahan Ridwan & Xaviera",
       "ACTION:DISPLAY",
       "END:VALARM",
       "END:VEVENT",
@@ -64,7 +64,7 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'The-Wedding-of-Ridwan-and-Salma.ics');
+    link.setAttribute('download', 'The-Wedding-of-Ridwan-and-Xaviera.ics');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -85,7 +85,7 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
         {/* Foto Pasangan Full-Bleed dengan efek Ken-Burns slow zoom */}
         <img
           src={couple.heroImage}
-          alt="Ridwan & Salma"
+          alt="Ridwan & Xaviera"
           className="absolute inset-0 w-full h-full object-cover object-center scale-105 animate-kenburns opacity-65"
         />
 
@@ -114,14 +114,14 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
           )}
         </div>
 
-        {/* Konten Utama Hero: The Wedding of Ridwan & Salma */}
+        {/* Konten Utama Hero: The Wedding of Ridwan & Xaviera */}
         <div className="relative z-10 my-auto py-5 text-center">
           <p className="font-script text-4xl text-botanical-gold-light mb-1">
             The Wedding of
           </p>
 
           <h1 className="font-serif text-4xl sm:text-5xl font-medium tracking-wide text-white mb-3">
-            Ridwan &amp; Salma
+            Ridwan &amp; Xaviera
           </h1>
 
           <div className="flex items-center justify-center gap-3 text-xs text-gray-200 mb-6 font-light flex-wrap">
@@ -214,7 +214,7 @@ export default function HeroSection({ couple, eventDate, eventDateFormatted, onT
             Walimatul 'Ursy
           </p>
           <h2 className="font-serif text-3xl font-bold text-botanical-emerald mb-2">
-            Ridwan &amp; Salma
+            Ridwan &amp; Xaviera
           </h2>
           <p className="text-xs text-botanical-muted max-w-xs mx-auto leading-relaxed mb-6">
             Selasa, 2 Februari 2027 • Benda, Kota Tangerang

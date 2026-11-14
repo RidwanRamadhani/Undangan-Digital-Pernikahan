@@ -35,7 +35,7 @@ export default function DesktopLeftPanel({
       {/* Background Image with Ken-Burns slow zoom effect */}
       <img
         src={couple.heroImage}
-        alt="Ridwan & Salma"
+        alt="Ridwan & Xaviera"
         className="w-full h-full object-cover object-center scale-105 animate-kenburns opacity-70"
       />
 
@@ -70,7 +70,7 @@ export default function DesktopLeftPanel({
         </p>
 
         <h1 className="font-serif text-5xl xl:text-6xl font-medium tracking-wide mb-4 text-white">
-          Ridwan &amp; Salma
+          Ridwan &amp; Xaviera
         </h1>
 
         <div className="flex items-center gap-6 text-sm text-gray-200 mb-8 font-light">

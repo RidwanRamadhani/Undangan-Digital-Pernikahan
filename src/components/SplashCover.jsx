@@ -23,7 +23,7 @@ export default function SplashCover({ guestName, onOpenInvitation, isOpen, onOpe
       <div className="absolute inset-0 bg-botanical-emerald">
         <img
           src="/images/couple_cover.jpg"
-          alt="Ridwan & Salma"
+          alt="Ridwan & Xaviera"
           className="w-full h-full object-cover object-center opacity-40 scale-105 animate-kenburns"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-botanical-emerald-dark via-botanical-emerald/60 to-botanical-emerald-dark/80" />
@@ -57,7 +57,7 @@ export default function SplashCover({ guestName, onOpenInvitation, isOpen, onOpe
         </p>
 
         <h1 className="font-serif text-4xl md:text-5xl font-semibold tracking-wide text-white mb-2">
-          Ridwan &amp; Salma
+          Ridwan &amp; Xaviera
         </h1>
 
         <div className="flex items-center gap-3 my-3">

@@ -35,10 +35,10 @@ export default function App() {
     if (toParam) {
       setGuestName(toParam);
       // Update page title dynamically
-      document.title = `The Wedding of Ridwan & Salma - Khusus untuk ${toParam}`;
+      document.title = `The Wedding of Ridwan & Xaviera - Khusus untuk ${toParam}`;
       const metaTitle = document.getElementById('meta-og-title');
       if (metaTitle) {
-        metaTitle.setAttribute('content', `The Wedding of Ridwan & Salma - Khusus untuk ${toParam}`);
+        metaTitle.setAttribute('content', `The Wedding of Ridwan & Xaviera - Khusus untuk ${toParam}`);
       }
     }
 
@@ -172,6 +172,7 @@ export default function App() {
             bankAccounts={weddingData.bankAccounts}
             giftAddress={weddingData.giftAddress}
             initialWishlist={weddingData.initialWishlist}
+            qrisImage={weddingData.qrisImage}
             onToast={addToast}
           />
 
@@ -188,7 +189,7 @@ export default function App() {
               Terima Kasih
             </p>
             <h4 className="font-serif text-2xl font-bold text-botanical-emerald mb-3">
-              Ridwan &amp; Salma
+              Ridwan &amp; Xaviera
             </h4>
             <p className="text-xs text-botanical-muted max-w-xs mx-auto leading-relaxed mb-6">
               Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.
@@ -209,7 +210,7 @@ export default function App() {
                 <span>Panel Admin</span>
               </button>
               <p className="text-[10px] text-gray-400">
-                Crafted with Luxury &amp; Editorial Precision for Ridwan &amp; Salma Wedding
+                Crafted with Luxury &amp; Editorial Precision for Ridwan &amp; Xaviera Wedding
               </p>
             </div>
           </footer>

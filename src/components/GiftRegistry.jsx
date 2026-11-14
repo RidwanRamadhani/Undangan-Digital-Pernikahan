@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import QRCode from 'qrcode';
 import { CreditCard, QrCode, Gift, Copy, Check, Send, Download } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 
-export default function GiftRegistry({ bankAccounts, giftAddress, initialWishlist, onToast }) {
+export default function GiftRegistry({ bankAccounts, giftAddress, initialWishlist, qrisImage = '/images/qris.jpg', onToast }) {
   const [activeTab, setActiveTab] = useState('bank'); // bank | qris | physical
   const [copiedAccount, setCopiedAccount] = useState(null);
   const [copiedAddress, setCopiedAddress] = useState(false);
@@ -63,46 +62,47 @@ export default function GiftRegistry({ bankAccounts, giftAddress, initialWishlis
   };
 
   const handleDownloadQris = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 450;
-    canvas.height = 600;
-    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.src = qrisImage;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 500;
+      canvas.height = 640;
+      const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, 450, 600);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 500, 640);
 
-    ctx.fillStyle = '#D32F2F';
-    ctx.fillRect(0, 0, 450, 75);
+      ctx.fillStyle = '#D32F2F';
+      ctx.fillRect(0, 0, 500, 75);
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('QRIS STANDAR PEMBAYARAN', 225, 48);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('QRIS STANDAR PEMBAYARAN', 250, 48);
 
-    ctx.fillStyle = '#1A1A1A';
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('WEDDING RIDWAN & SALMA', 225, 115);
+      ctx.fillStyle = '#1A1A1A';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText('WEDDING RIDWAN & XAVIERA', 250, 115);
 
-    ctx.fillStyle = '#666666';
-    ctx.font = '12px sans-serif';
-    ctx.fillText('NMID: ID1020270202999', 225, 138);
+      ctx.fillStyle = '#666666';
+      ctx.font = '12px sans-serif';
+      ctx.fillText('NMID: ID1020270202999', 250, 138);
 
-    QRCode.toCanvas(canvas, '00020101021226680016ID.CO.QRIS.WWW01189360099800000000005204581253033605802ID5919RIDWAN SALMA WEDDING6007JAKARTA6304ABCD', {
-      width: 320,
-      margin: 1
-    }, () => {
+      ctx.drawImage(img, 75, 155, 350, 350);
+
       ctx.fillStyle = '#1C2A24';
       ctx.font = 'bold 13px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('Dapat dipindai dengan BCA, Mandiri, GoPay, OVO, Dana, dll.', 225, 520);
+      ctx.fillText('Dapat dipindai dengan BCA, Mandiri, GoPay, OVO, Dana, ShopeePay, dll.', 250, 545);
       ctx.fillStyle = '#888888';
       ctx.font = '11px sans-serif';
-      ctx.fillText('Terima kasih atas tanda kasih dan doa restu Anda', 225, 545);
+      ctx.fillText('Terima kasih atas tanda kasih dan doa restu Anda', 250, 575);
 
       const url = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'QRIS-Ridwan-Salma-Wedding.png';
+      a.download = 'QRIS-Ridwan-Xaviera-Wedding.png';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -113,7 +113,23 @@ export default function GiftRegistry({ bankAccounts, giftAddress, initialWishlis
           message: 'Gambar QRIS berhasil disimpan.'
         });
       }
-    });
+    };
+
+    img.onerror = () => {
+      const a = document.createElement('a');
+      a.href = qrisImage;
+      a.download = 'QRIS-Ridwan-Xaviera-Wedding.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      if (onToast) {
+        onToast({
+          title: 'QRIS Diunduh',
+          message: 'Gambar QRIS berhasil disimpan.'
+        });
+      }
+    };
   };
 
   return (
@@ -232,14 +248,14 @@ export default function GiftRegistry({ bankAccounts, giftAddress, initialWishlis
             <div className="max-w-xs mx-auto p-4 rounded-2xl bg-white shadow-xl border-2 border-botanical-gold/40 mb-6">
               <div className="border-b border-gray-200 pb-2 mb-3">
                 <span className="text-xs font-bold text-rose-600 tracking-wider">QRIS STANDAR NASIONAL</span>
-                <p className="text-[11px] font-semibold text-gray-800">RIDWAN &amp; SALMA WEDDING</p>
+                <p className="text-[11px] font-semibold text-gray-800">RIDWAN &amp; XAVIERA WEDDING</p>
                 <p className="text-[9px] text-gray-500">NMID: ID1020270202999</p>
               </div>
 
-              <div className="w-52 h-52 mx-auto bg-gray-50 p-2 rounded-xl border flex items-center justify-center">
+              <div className="w-56 h-56 mx-auto bg-white p-2 rounded-xl border border-gray-200 flex items-center justify-center shadow-inner overflow-hidden">
                 <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=00020101021226680016ID.CO.QRIS.WWW01189360099800000000005204581253033605802ID5919RIDWAN%20SALMA%20WEDDING6007JAKARTA6304ABCD"
-                  alt="QRIS Digital"
+                  src={qrisImage}
+                  alt="QRIS Digital Ridwan & Xaviera"
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -341,7 +357,7 @@ export default function GiftRegistry({ bankAccounts, giftAddress, initialWishlis
         <div className="mt-8 text-center">
           <a
             href={`https://wa.me/6281288889999?text=${encodeURIComponent(
-              'Halo Ridwan & Salma, saya ingin mengonfirmasi pengiriman tanda kasih / kado pernikahan untuk kalian. Semoga berkah dan bahagia selalu!'
+              'Halo Ridwan & Xaviera, saya ingin mengonfirmasi pengiriman tanda kasih / kado pernikahan untuk kalian. Semoga berkah dan bahagia selalu!'
             )}`}
             target="_blank"
             rel="noopener noreferrer"

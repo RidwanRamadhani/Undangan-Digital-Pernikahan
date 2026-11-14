@@ -107,7 +107,7 @@ export default function EventDetails({ events, map, liveStream, onToast }) {
             allowFullScreen=""
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            title="Lokasi Pernikahan Ridwan & Salma"
+            title="Lokasi Pernikahan Ridwan & Xaviera"
           />
         </div>
 
