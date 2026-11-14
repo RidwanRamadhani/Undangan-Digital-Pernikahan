@@ -24,6 +24,21 @@ export default function App() {
   const [toasts, setToasts] = useState([]);
   const [guestName, setGuestName] = useState('');
   const [maxPax, setMaxPax] = useState(2);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    return sessionStorage.getItem('wedding_admin_authed') === 'true';
+  });
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setIsAdminAuthenticated(sessionStorage.getItem('wedding_admin_authed') === 'true');
+    };
+    window.addEventListener('wedding_admin_auth_changed', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('wedding_admin_auth_changed', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
 
   // Read URL query parameters on load
   useEffect(() => {
@@ -180,6 +195,8 @@ export default function App() {
           <WishesWall
             initialWishes={weddingData.initialWishes}
             guestName={guestName}
+            isAdmin={isAdminAuthenticated}
+            onOpenAdmin={() => setIsAdminOpen(true)}
             onToast={addToast}
           />
 

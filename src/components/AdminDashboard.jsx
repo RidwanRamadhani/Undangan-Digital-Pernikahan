@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { 
   BarChart3, Users, Send, Copy, Check, ShieldCheck, X, Plus, ExternalLink, Lock, 
   KeyRound, LogOut, Search, CheckCircle, FileText, Upload, RefreshCw, MessageSquare,
-  FileSpreadsheet, Download
+  FileSpreadsheet, Download, Pin, Heart, CornerDownRight, Trash2
 } from 'lucide-react';
 import { INITIAL_EXCEL_GUESTS } from '../data/weddingData';
 
@@ -35,6 +35,40 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
   
   // Guest List State
   const [guests, setGuests] = useState([]);
+
+  // Wishes Wall State in Admin Dashboard
+  const [wishes, setWishes] = useState(() => {
+    const saved = localStorage.getItem('wedding_wishes');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [];
+  });
+  const [wishSearchTerm, setWishSearchTerm] = useState('');
+  const [wishFilter, setWishFilter] = useState('all'); // all | pinned | replied | unreplied
+  const [adminReplyingId, setAdminReplyingId] = useState(null);
+  const [adminReplyText, setAdminReplyText] = useState('');
+
+  // Keep wishes synchronized
+  useEffect(() => {
+    const syncWishes = () => {
+      const saved = localStorage.getItem('wedding_wishes');
+      if (saved) {
+        try {
+          setWishes(JSON.parse(saved));
+        } catch (e) {}
+      }
+    };
+    syncWishes();
+    window.addEventListener('wedding_wishes_updated', syncWishes);
+    window.addEventListener('storage', syncWishes);
+    return () => {
+      window.removeEventListener('wedding_wishes_updated', syncWishes);
+      window.removeEventListener('storage', syncWishes);
+    };
+  }, [isOpen]);
 
   // Form New Single Guest
   const [newGuest, setNewGuest] = useState({
@@ -188,6 +222,7 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
         if (next === storedPin) {
           setIsAuthenticated(true);
           sessionStorage.setItem('wedding_admin_authed', 'true');
+          window.dispatchEvent(new Event('wedding_admin_auth_changed'));
           setPinError(false);
           setPinInput('');
           if (onToast) onToast({ title: 'Akses Diberikan', message: 'Selamat datang di Panel Manajemen Undangan.' });
@@ -210,6 +245,7 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
   const handleLogout = () => {
     setIsAuthenticated(false);
     sessionStorage.removeItem('wedding_admin_authed');
+    window.dispatchEvent(new Event('wedding_admin_auth_changed'));
     setPinInput('');
     if (onToast) onToast({ title: 'Terkunci Kembali', message: 'Panel Admin berhasil dikunci.' });
   };
@@ -224,6 +260,74 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
     localStorage.setItem('wedding_admin_pin', newPinInput);
     setNewPinInput('');
     if (onToast) onToast({ title: 'PIN Diperbarui', message: 'PIN keamanan baru berhasil disimpan!' });
+  };
+
+  // ADMIN ACTION: Toggle Pin/Sematkan Komentar
+  const handleTogglePinWish = (id) => {
+    const updated = wishes.map((w) => (w.id === id ? { ...w, isPinned: !w.isPinned } : w));
+    setWishes(updated);
+    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
+    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    const target = updated.find((w) => w.id === id);
+    if (onToast) {
+      onToast({
+        title: target.isPinned ? 'Ucapan Disematkan' : 'Sematan Dilepas',
+        message: target.isPinned
+          ? `Ucapan dari ${target.senderName} kini disematkan di posisi teratas.`
+          : `Sematan ucapan ${target.senderName} telah dilepas.`
+      });
+    }
+  };
+
+  // ADMIN ACTION: Save/Edit Reply
+  const handleSaveReplyWish = (id) => {
+    if (!adminReplyText.trim()) {
+      if (onToast) onToast({ type: 'error', title: 'Perhatian', message: 'Teks balasan doa tidak boleh kosong.' });
+      return;
+    }
+    const updated = wishes.map((w) => (w.id === id ? { ...w, replyMessage: adminReplyText.trim() } : w));
+    setWishes(updated);
+    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
+    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    setAdminReplyingId(null);
+    setAdminReplyText('');
+    if (onToast) {
+      onToast({
+        title: 'Balasan Terkirim',
+        message: 'Balasan Ridwan & Xaviera berhasil dipublikasikan.'
+      });
+    }
+  };
+
+  // ADMIN ACTION: Delete Reply
+  const handleDeleteReplyWish = (id) => {
+    const updated = wishes.map((w) => (w.id === id ? { ...w, replyMessage: null } : w));
+    setWishes(updated);
+    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
+    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    setAdminReplyingId(null);
+    setAdminReplyText('');
+    if (onToast) {
+      onToast({
+        title: 'Balasan Dihapus',
+        message: 'Balasan mempelai untuk ucapan ini berhasil dihapus.'
+      });
+    }
+  };
+
+  // ADMIN ACTION: Delete Wish (in case of spam)
+  const handleDeleteWish = (id, name) => {
+    if (!window.confirm(`Hapus ucapan doa dari "${name}"?`)) return;
+    const updated = wishes.filter((w) => w.id !== id);
+    setWishes(updated);
+    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
+    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    if (onToast) {
+      onToast({
+        title: 'Ucapan Dihapus',
+        message: `Ucapan dari ${name} berhasil dihapus dari sistem.`
+      });
+    }
   };
 
   // Add Single Guest
@@ -737,6 +841,7 @@ Ridwan & Xaviera`;
           <div className="flex border-b border-botanical-gold/20 bg-botanical-champagne/70 px-4 sm:px-6 gap-2 pt-2.5 shrink-0 overflow-x-auto">
             {[
               { id: 'blast', label: `Sebar Link WhatsApp (${guests.length})`, icon: Send },
+              { id: 'wishes', label: `Kelola Ucapan (${wishes.length})`, icon: MessageSquare },
               { id: 'stats', label: 'Ringkasan Tamu & RSVP', icon: BarChart3 },
               { id: 'pin', label: 'Ubah PIN', icon: KeyRound },
             ].map((tab) => {
@@ -1114,6 +1219,237 @@ Ridwan & Xaviera`;
                         </div>
                       );
                     })
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: KELOLA UCAPAN & BALASAN PENGANTIN */}
+            {activeTab === 'wishes' && (
+              <div className="space-y-5 animate-fade-in">
+                {/* Ringkasan Metrik Ucapan */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-4 rounded-2xl bg-white border border-botanical-gold/30 shadow-xs">
+                    <span className="text-[10px] sm:text-xs text-botanical-muted uppercase font-semibold">Total Ucapan</span>
+                    <p className="text-2xl font-serif font-bold text-botanical-emerald mt-0.5">{wishes.length}</p>
+                    <span className="text-[10px] text-gray-500">Dari Seluruh Tamu</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white border border-botanical-gold/30 shadow-xs">
+                    <span className="text-[10px] sm:text-xs text-botanical-muted uppercase font-semibold">Disematkan (Pin)</span>
+                    <p className="text-2xl font-serif font-bold text-amber-600 mt-0.5">
+                      {wishes.filter((w) => w.isPinned).length}
+                    </p>
+                    <span className="text-[10px] text-amber-700/80">Posisi Paling Atas</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white border border-botanical-gold/30 shadow-xs">
+                    <span className="text-[10px] sm:text-xs text-botanical-muted uppercase font-semibold">Dibalas Pengantin</span>
+                    <p className="text-2xl font-serif font-bold text-emerald-600 mt-0.5">
+                      {wishes.filter((w) => w.replyMessage).length}
+                    </p>
+                    <span className="text-[10px] text-emerald-700/80">Ridwan &amp; Xaviera</span>
+                  </div>
+                </div>
+
+                {/* Filter & Pencarian */}
+                <div className="p-4 rounded-2xl bg-white border border-botanical-gold/30 shadow-xs space-y-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Cari nama pengirim ucapan atau isi doa..."
+                        value={wishSearchTerm}
+                        onChange={(e) => setWishSearchTerm(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-botanical-gold bg-gray-50/50"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                      {[
+                        { id: 'all', label: `Semua (${wishes.length})` },
+                        { id: 'pinned', label: `Disematkan (${wishes.filter((w) => w.isPinned).length})` },
+                        { id: 'unreplied', label: `Belum Dibalas (${wishes.filter((w) => !w.replyMessage).length})` },
+                        { id: 'replied', label: `Sudah Dibalas (${wishes.filter((w) => w.replyMessage).length})` },
+                      ].map((btn) => (
+                        <button
+                          key={btn.id}
+                          type="button"
+                          onClick={() => setWishFilter(btn.id)}
+                          className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap transition-all ${
+                            wishFilter === btn.id
+                              ? 'bg-botanical-emerald text-white shadow-xs'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Daftar Ucapan */}
+                <div className="space-y-3">
+                  {wishes
+                    .filter((w) => {
+                      const matchSearch =
+                        (w.senderName || '').toLowerCase().includes(wishSearchTerm.toLowerCase()) ||
+                        (w.message || '').toLowerCase().includes(wishSearchTerm.toLowerCase());
+                      if (!matchSearch) return false;
+                      if (wishFilter === 'pinned') return w.isPinned;
+                      if (wishFilter === 'unreplied') return !w.replyMessage;
+                      if (wishFilter === 'replied') return Boolean(w.replyMessage);
+                      return true;
+                    })
+                    .sort((a, b) => {
+                      if (a.isPinned && !b.isPinned) return -1;
+                      if (!a.isPinned && b.isPinned) return 1;
+                      return 0;
+                    })
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className={`p-4 rounded-2xl border transition-all ${
+                          item.isPinned
+                            ? 'bg-amber-50/60 border-amber-300 shadow-xs'
+                            : 'bg-white border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs font-bold text-botanical-emerald">
+                              {item.senderName}
+                            </h4>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                                item.attendanceBadge === 'Hadir'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              {item.attendanceBadge}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                            {item.isPinned && (
+                              <span className="inline-flex items-center gap-0.5 text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded-full">
+                                <Pin className="w-2.5 h-2.5 rotate-45" />
+                                <span>Disematkan</span>
+                              </span>
+                            )}
+                            <span>{item.createdAt}</span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-gray-800 leading-relaxed whitespace-pre-line mb-3">
+                          {item.message}
+                        </p>
+
+                        {/* Balasan yang Sudah Tersimpan */}
+                        {item.replyMessage && (
+                          <div className="p-3 rounded-xl bg-botanical-champagne/70 border-l-2 border-botanical-gold mt-2 mb-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-bold text-botanical-emerald flex items-center gap-1">
+                                <Heart className="w-2.5 h-2.5 fill-botanical-gold text-botanical-gold" />
+                                <span>Balasan Ridwan &amp; Xaviera</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteReplyWish(item.id)}
+                                className="text-[10px] text-red-500 hover:text-red-700 underline"
+                              >
+                                Hapus Balasan
+                              </button>
+                            </div>
+                            <p className="text-[11px] text-botanical-muted italic leading-relaxed">
+                              {item.replyMessage}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Input Form Balasan Inline (Jika Sedang Membalas) */}
+                        {adminReplyingId === item.id && (
+                          <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-300 mb-3 space-y-2 animate-fade-in">
+                            <span className="text-[11px] font-bold text-emerald-950 flex items-center gap-1.5">
+                              <Heart className="w-3.5 h-3.5 text-botanical-gold fill-botanical-gold" />
+                              <span>Balas Doa atas nama Ridwan &amp; Xaviera:</span>
+                            </span>
+                            <textarea
+                              rows={2}
+                              maxLength={300}
+                              value={adminReplyText}
+                              onChange={(e) => setAdminReplyText(e.target.value)}
+                              placeholder="Tuliskan ucapan terima kasih dan doa balik untuk tamu..."
+                              className="w-full p-2.5 rounded-xl text-xs border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-gray-800 leading-relaxed"
+                            />
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAdminReplyingId(null);
+                                  setAdminReplyText('');
+                                }}
+                                className="px-3 py-1 rounded-lg text-xs text-gray-600 hover:bg-gray-200"
+                              >
+                                Batal
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSaveReplyWish(item.id)}
+                                className="px-3.5 py-1 rounded-lg text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs"
+                              >
+                                Publikasikan Balasan
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleTogglePinWish(item.id)}
+                              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-semibold transition-all ${
+                                item.isPinned
+                                  ? 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                              }`}
+                            >
+                              <Pin className={`w-3 h-3 ${item.isPinned ? 'rotate-45 fill-amber-600 text-amber-600' : ''}`} />
+                              <span>{item.isPinned ? 'Lepas Sematan' : 'Sematkan'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAdminReplyingId(item.id);
+                                setAdminReplyText(item.replyMessage || '');
+                              }}
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all"
+                            >
+                              <CornerDownRight className="w-3 h-3 text-emerald-600" />
+                              <span>{item.replyMessage ? 'Edit Balasan' : 'Balas Ucapan'}</span>
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteWish(item.id, item.senderName)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Hapus ucapan spam ini"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                  {wishes.length === 0 && (
+                    <div className="p-8 text-center bg-white rounded-2xl border border-gray-200">
+                      <p className="text-xs text-gray-500">Belum ada ucapan doa yang masuk dari tamu.</p>
+                    </div>
                   )}
                 </div>
               </div>

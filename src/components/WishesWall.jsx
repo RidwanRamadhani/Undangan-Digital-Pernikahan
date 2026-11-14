@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Heart, Pin, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { MessageSquare, Send, Heart, Pin, CheckCircle2, XCircle, Clock, ShieldCheck, CornerDownRight, Trash2, Edit3 } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 
-export default function WishesWall({ initialWishes, guestName, onToast }) {
+export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAdmin, onToast }) {
   const [wishes, setWishes] = useState(() => {
     const saved = localStorage.getItem('wedding_wishes');
     if (saved) {
@@ -22,6 +22,8 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
   });
 
   const [lastSubmitTime, setLastSubmitTime] = useState(0);
+  const [replyingWishId, setReplyingWishId] = useState(null);
+  const [replyText, setReplyText] = useState('');
 
   useEffect(() => {
     if (guestName) {
@@ -29,7 +31,7 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
     }
   }, [guestName]);
 
-  // Real-time synchronization when RSVP form submits a wish
+  // Real-time synchronization when RSVP form or Admin submits/updates a wish
   useEffect(() => {
     const handleWishesUpdate = () => {
       const saved = localStorage.getItem('wedding_wishes');
@@ -86,6 +88,7 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
     const updated = [newWish, ...wishes];
     setWishes(updated);
     localStorage.setItem('wedding_wishes', JSON.stringify(updated));
+    window.dispatchEvent(new Event('wedding_wishes_updated'));
     setLastSubmitTime(now);
 
     setFormData({
@@ -102,6 +105,93 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
     }
   };
 
+  // ADMIN ACTION: Toggle Pin/Sematkan Komentar
+  const handleTogglePin = (id) => {
+    if (!isAdmin) return;
+    const updated = wishes.map((item) =>
+      item.id === id ? { ...item, isPinned: !item.isPinned } : item
+    );
+    setWishes(updated);
+    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
+    window.dispatchEvent(new Event('wedding_wishes_updated'));
+
+    const target = updated.find((item) => item.id === id);
+    if (onToast) {
+      onToast({
+        title: target.isPinned ? 'Ucapan Disematkan' : 'Sematan Dilepas',
+        message: target.isPinned
+          ? `Komentar ${target.senderName} disematkan ke posisi teratas.`
+          : `Sematan komentar ${target.senderName} berhasil dilepas.`
+      });
+    }
+  };
+
+  // ADMIN ACTION: Start Inlining Reply
+  const handleStartReply = (item) => {
+    if (!isAdmin) return;
+    setReplyingWishId(item.id);
+    setReplyText(item.replyMessage || '');
+  };
+
+  const handleCancelReply = () => {
+    setReplyingWishId(null);
+    setReplyText('');
+  };
+
+  // ADMIN ACTION: Save Couple Reply
+  const handleSaveReply = (id) => {
+    if (!isAdmin) return;
+    if (!replyText.trim()) {
+      if (onToast) {
+        onToast({ type: 'error', title: 'Perhatian', message: 'Teks balasan doa tidak boleh kosong.' });
+      }
+      return;
+    }
+
+    const updated = wishes.map((item) =>
+      item.id === id ? { ...item, replyMessage: replyText.trim() } : item
+    );
+    setWishes(updated);
+    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
+    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    setReplyingWishId(null);
+    setReplyText('');
+
+    if (onToast) {
+      onToast({
+        title: 'Balasan Terkirim',
+        message: 'Balasan Ridwan & Xaviera berhasil dipublikasikan pada dinding ucapan.'
+      });
+    }
+  };
+
+  // ADMIN ACTION: Delete Couple Reply
+  const handleDeleteReply = (id) => {
+    if (!isAdmin) return;
+    const updated = wishes.map((item) =>
+      item.id === id ? { ...item, replyMessage: null } : item
+    );
+    setWishes(updated);
+    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
+    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    setReplyingWishId(null);
+    setReplyText('');
+
+    if (onToast) {
+      onToast({
+        title: 'Balasan Dihapus',
+        message: 'Balasan mempelai untuk komentar ini berhasil dihapus.'
+      });
+    }
+  };
+
+  // Sorted: Pinned wishes always appear at top
+  const sortedWishes = [...wishes].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return 0;
+  });
+
   return (
     <section id="ucapan" className="py-12 px-6 md:px-10">
       <ScrollReveal animation="fade-up" className="text-center mb-10">
@@ -117,6 +207,28 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
       </ScrollReveal>
 
       <div className="max-w-xl mx-auto space-y-8">
+        {/* Active Admin Banner Notice */}
+        {isAdmin && (
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-amber-500/15 border border-botanical-gold/50 shadow-sm flex items-center justify-between gap-3 text-xs animate-fade-in">
+            <div className="flex items-center gap-2.5">
+              <span className="w-7 h-7 rounded-full bg-botanical-emerald text-botanical-gold flex items-center justify-center font-bold text-sm shadow-xs">
+                👑
+              </span>
+              <div>
+                <p className="font-bold text-botanical-emerald text-xs">
+                  Mode Pengantin Aktif (Admin Terverifikasi)
+                </p>
+                <p className="text-[10px] text-botanical-muted">
+                  Anda dapat menyematkan (pin) dan membalas langsung ucapan tamu di bawah ini.
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2 py-0.5 rounded-full whitespace-nowrap">
+              Admin Mode
+            </span>
+          </div>
+        )}
+
         {/* Wish Submission Form */}
         <ScrollReveal animation="scale" delay={150}>
           <form
@@ -179,8 +291,8 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
 
         {/* Wishes List (Live Wall) */}
         <ScrollReveal animation="fade-up" delay={250}>
-          <div className="space-y-4 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar">
-            {wishes.map((item) => (
+          <div className="space-y-4 max-h-[580px] overflow-y-auto pr-2 custom-scrollbar">
+            {sortedWishes.map((item) => (
               <div
                 key={item.id}
                 className={`p-5 rounded-2xl glass-card border shadow-sm transition-all ${
@@ -221,6 +333,7 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
                   {item.message}
                 </p>
 
+                {/* Balasan Mempelai (Ridwan & Xaviera) */}
                 {item.replyMessage && (
                   <div className="p-3 rounded-xl bg-botanical-champagne/70 border-l-2 border-botanical-gold mt-2">
                     <span className="text-[10px] font-bold text-botanical-emerald flex items-center gap-1 mb-0.5">
@@ -232,9 +345,115 @@ export default function WishesWall({ initialWishes, guestName, onToast }) {
                     </p>
                   </div>
                 )}
+
+                {/* FORM INLINE BALASAN (HANYA MUNCUL DI MODE ADMIN) */}
+                {isAdmin && replyingWishId === item.id && (
+                  <div className="mt-3 p-3.5 rounded-2xl bg-white/95 border-2 border-emerald-400 shadow-md space-y-2.5 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-emerald-950 flex items-center gap-1.5">
+                        <Heart className="w-3.5 h-3.5 text-botanical-gold fill-botanical-gold" />
+                        <span>Tulis Balasan Ridwan &amp; Xaviera:</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCancelReply}
+                        className="text-[10px] text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        Batal
+                      </button>
+                    </div>
+
+                    <textarea
+                      rows={2}
+                      maxLength={300}
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      placeholder="Contoh: Aamiin ya Rabbal 'alamin, terima kasih banyak atas doa restunya!"
+                      className="w-full p-2.5 rounded-xl text-xs border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50/70 text-botanical-obsidian leading-relaxed"
+                    />
+
+                    <div className="flex items-center justify-between pt-1">
+                      {item.replyMessage ? (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteReply(item.id)}
+                          className="inline-flex items-center gap-1 text-[10px] font-medium text-red-600 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Hapus Balasan</span>
+                        </button>
+                      ) : <span />}
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCancelReply}
+                          className="px-3 py-1 rounded-lg text-[11px] text-gray-600 hover:bg-gray-100 font-medium transition-colors"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveReply(item.id)}
+                          className="px-3.5 py-1 rounded-lg text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm transition-all"
+                        >
+                          Simpan Balasan
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TOMBOL AKSI ADMIN PENGANTIN (HANYA AKTIF JIKA LOGIN ADMIN) */}
+                {isAdmin && (
+                  <div className="pt-2.5 mt-3 border-t border-botanical-gold/20 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePin(item.id)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all ${
+                          item.isPinned
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
+                            : 'bg-white/80 hover:bg-botanical-champagne text-botanical-muted hover:text-botanical-obsidian border border-botanical-gold/30'
+                        }`}
+                        title={item.isPinned ? 'Lepas sematan' : 'Sematkan ucapan ke atas'}
+                      >
+                        <Pin className={`w-3 h-3 ${item.isPinned ? 'rotate-45 fill-amber-600 text-amber-600' : ''}`} />
+                        <span>{item.isPinned ? 'Lepas Sematan' : 'Sematkan'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleStartReply(item)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all"
+                      >
+                        <CornerDownRight className="w-3 h-3 text-emerald-600" />
+                        <span>{item.replyMessage ? 'Edit Balasan' : 'Balas Ucapan'}</span>
+                      </button>
+                    </div>
+
+                    <span className="text-[9px] font-medium text-emerald-800/60 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      Akses Pengantin
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
+
+          {/* Quick Admin Login Prompt when not logged in */}
+          {!isAdmin && onOpenAdmin && (
+            <div className="pt-4 text-center">
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-botanical-champagne/60 hover:bg-botanical-champagne text-[11px] text-botanical-emerald font-medium border border-botanical-gold/25 transition-all hover:scale-101"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-botanical-gold" />
+                <span>Pengantin ingin membalas atau menyematkan ucapan? Buka Mode Admin</span>
+              </button>
+            </div>
+          )}
         </ScrollReveal>
       </div>
     </section>
