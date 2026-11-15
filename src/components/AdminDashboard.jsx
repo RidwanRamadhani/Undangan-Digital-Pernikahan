@@ -17,6 +17,7 @@ import {
   updateWishCloud, 
   deleteWishCloud,
   subscribeToAdminPin,
+  getAdminPinCloud,
   saveAdminPinCloud,
   getActiveFirebaseConfig,
   initFirebase,
@@ -134,6 +135,15 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
 
   // Subscribe to Cloud Realtime PIN (Sinkronisasi PIN Global Lintas Seluruh Perangkat)
   useEffect(() => {
+    // 1. Ambil langsung PIN terbaru dari Firestore
+    getAdminPinCloud().then((cloudPin) => {
+      if (cloudPin && typeof cloudPin === 'string' && cloudPin.length === 4) {
+        setStoredPin(cloudPin);
+        localStorage.setItem('wedding_admin_pin', cloudPin);
+      }
+    });
+
+    // 2. Realtime listener Firestore
     const unsubPin = subscribeToAdminPin((cloudPin) => {
       if (cloudPin && typeof cloudPin === 'string' && cloudPin.length === 4) {
         setStoredPin(cloudPin);
@@ -156,6 +166,18 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
       window.removeEventListener('wedding_admin_pin_updated', handlePinSync);
     };
   }, []);
+
+  // Selalu refresh PIN terbaru dari Firestore setiap kali popup Admin dibuka
+  useEffect(() => {
+    if (isOpen) {
+      getAdminPinCloud().then((cloudPin) => {
+        if (cloudPin && typeof cloudPin === 'string' && cloudPin.length === 4) {
+          setStoredPin(cloudPin);
+          localStorage.setItem('wedding_admin_pin', cloudPin);
+        }
+      });
+    }
+  }, [isOpen]);
 
   // Form New Single Guest
   const [newGuest, setNewGuest] = useState({
@@ -312,12 +334,29 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
   const unsentCount = totalInvitations - sentCount;
 
   // PIN verification
-  const handleKeypadPress = (val) => {
+  const handleKeypadPress = async (val) => {
     if (pinInput.length < 4) {
       const next = pinInput + val;
       setPinInput(next);
       if (next.length === 4) {
-        if (next === storedPin) {
+        const localPin = localStorage.getItem('wedding_admin_pin') || storedPin || DEFAULT_PIN;
+        let isMatch = (next === storedPin || next === localPin);
+
+        // Jika belum cocok dengan memori lokal, verifikasi langsung ke Cloud Firestore detik itu juga
+        if (!isMatch) {
+          try {
+            const freshCloudPin = await getAdminPinCloud();
+            if (freshCloudPin && next === freshCloudPin) {
+              isMatch = true;
+              setStoredPin(freshCloudPin);
+              localStorage.setItem('wedding_admin_pin', freshCloudPin);
+            }
+          } catch (e) {
+            console.error('Verifikasi cloud PIN gagal:', e);
+          }
+        }
+
+        if (isMatch) {
           setIsAuthenticated(true);
           sessionStorage.setItem('wedding_admin_authed', 'true');
           window.dispatchEvent(new Event('wedding_admin_auth_changed'));
@@ -358,11 +397,20 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
     setStoredPin(pinVal);
     localStorage.setItem('wedding_admin_pin', pinVal);
     setNewPinInput('');
+
     try {
       await saveAdminPinCloud(pinVal);
-      if (onToast) onToast({ title: 'PIN Diperbarui', message: 'PIN keamanan baru berhasil disimpan & disinkronkan ke seluruh perangkat secara realtime!' });
+      if (onToast) onToast({ 
+        title: 'PIN Diperbarui Realtime', 
+        message: `PIN berhasil diubah menjadi ${pinVal} dan tersinkronisasi ke seluruh perangkat!` 
+      });
     } catch (err) {
-      if (onToast) onToast({ title: 'PIN Disimpan', message: 'PIN baru berhasil disimpan di perangkat ini.' });
+      console.error('Gagal simpan PIN ke cloud:', err);
+      if (onToast) onToast({ 
+        type: 'error', 
+        title: 'Gagal Cloud', 
+        message: 'Gagal sinkronisasi ke Firebase: ' + (err?.message || 'Cek koneksi internet') 
+      });
     }
   };
 

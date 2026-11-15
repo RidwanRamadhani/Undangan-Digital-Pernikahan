@@ -7,6 +7,7 @@ import {
   updateDoc, 
   deleteDoc, 
   getDocs,
+  getDoc,
   onSnapshot, 
   query, 
   orderBy, 
@@ -341,7 +342,7 @@ export const subscribeToGuests = (onSuccess, onError) => {
       (snapshot) => {
         const guests = [];
         snapshot.forEach((docSnap) => {
-          if (docSnap.id.startsWith('__system_')) return;
+          if (docSnap.id === 'system_pin' || docSnap.id.startsWith('__system_')) return;
           const data = docSnap.data();
           guests.push({
             id: docSnap.id,
@@ -448,7 +449,7 @@ export const replaceAllGuestsCloud = async (newGuests) => {
     let operationCount = 0;
 
     for (const docSnap of snapshot.docs) {
-      if (docSnap.id.startsWith('__system_')) continue;
+      if (docSnap.id === 'system_pin' || docSnap.id.startsWith('__system_')) continue;
       batch.delete(docSnap.ref);
       operationCount++;
       if (operationCount >= BATCH_LIMIT) {
@@ -515,9 +516,34 @@ export const deleteGuestCloud = async (guestId) => {
 };
 
 // ===============================================================
-// 3. PIN KEAMANAN ADMIN REALTIME (GLOBAL DOC: 'guests/__system_security_pin__')
+// 3. PIN KEAMANAN ADMIN REALTIME (GLOBAL DOC: 'guests/system_pin')
 // Menggunakan collection 'guests' yang sudah diizinkan di Security Rules
 // ===============================================================
+
+export const getAdminPinCloud = async () => {
+  const db = getDb();
+  if (!db) {
+    return localStorage.getItem('wedding_admin_pin') || '0202';
+  }
+
+  try {
+    const docRef = doc(db, 'guests', 'system_pin');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data && data.pin) {
+        const pinStr = String(data.pin).trim();
+        localStorage.setItem('wedding_admin_pin', pinStr);
+        window.dispatchEvent(new Event('wedding_admin_pin_updated'));
+        return pinStr;
+      }
+    }
+  } catch (err) {
+    console.error('Error getAdminPinCloud:', err);
+  }
+
+  return localStorage.getItem('wedding_admin_pin') || '0202';
+};
 
 export const subscribeToAdminPin = (onSuccess, onError) => {
   const db = getDb();
@@ -528,7 +554,7 @@ export const subscribeToAdminPin = (onSuccess, onError) => {
   }
 
   try {
-    const docRef = doc(db, 'guests', '__system_security_pin__');
+    const docRef = doc(db, 'guests', 'system_pin');
     const unsubscribe = onSnapshot(
       docRef,
       (docSnap) => {
@@ -560,15 +586,19 @@ export const saveAdminPinCloud = async (newPin) => {
   window.dispatchEvent(new Event('wedding_admin_pin_updated'));
 
   const db = getDb();
-  if (!db) return;
+  if (!db) {
+    throw new Error('Koneksi Firebase Database belum terhubung');
+  }
 
   try {
-    const docRef = doc(db, 'guests', '__system_security_pin__');
+    const docRef = doc(db, 'guests', 'system_pin');
     await setDoc(docRef, {
+      id: 'system_pin',
       pin: pinStr,
       updatedAt: serverTimestamp()
     }, { merge: true });
-    console.log('PIN Admin berhasil disinkronkan ke Cloud Firestore.');
+    console.log('PIN Admin berhasil disinkronkan ke Cloud Firestore:', pinStr);
+    return true;
   } catch (err) {
     console.error('Gagal menyimpan PIN Admin ke Cloud:', err);
     throw err;

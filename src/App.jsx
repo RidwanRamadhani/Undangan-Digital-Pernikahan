@@ -16,6 +16,7 @@ import BottomNav from './components/BottomNav';
 import AdminDashboard from './components/AdminDashboard';
 import Toast from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
+import { subscribeToAdminPin, getAdminPinCloud } from './services/firebase';
 import { Heart, Sparkles, ShieldCheck } from 'lucide-react';
 
 export default function App() {
@@ -39,6 +40,25 @@ export default function App() {
       window.removeEventListener('wedding_admin_auth_changed', handleAuthChange);
       window.removeEventListener('storage', handleAuthChange);
     };
+  }, []);
+
+  // Sinkronisasi PIN Admin secara global sejak aplikasi pertama kali dibuka di perangkat manapun
+  useEffect(() => {
+    getAdminPinCloud().then((cloudPin) => {
+      if (cloudPin && typeof cloudPin === 'string' && cloudPin.length === 4) {
+        localStorage.setItem('wedding_admin_pin', cloudPin);
+        window.dispatchEvent(new Event('wedding_admin_pin_updated'));
+      }
+    });
+
+    const unsubPin = subscribeToAdminPin((cloudPin) => {
+      if (cloudPin && typeof cloudPin === 'string' && cloudPin.length === 4) {
+        localStorage.setItem('wedding_admin_pin', cloudPin);
+        window.dispatchEvent(new Event('wedding_admin_pin_updated'));
+      }
+    });
+
+    return () => unsubPin();
   }, []);
 
   // Read URL query parameters on load
