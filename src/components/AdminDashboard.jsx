@@ -8,7 +8,7 @@ import {
 import { INITIAL_EXCEL_GUESTS } from '../data/weddingData';
 import { 
   subscribeToGuests, 
-  syncAllGuestsCloud, 
+  replaceAllGuestsCloud, 
   saveGuestCloud, 
   updateGuestCloud, 
   deleteGuestCloud, 
@@ -418,7 +418,7 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
         if (onToast) onToast({ title: 'Koneksi Berhasil!', message: 'Google Firebase aktif! Sinkronisasi real-time ke semua perangkat kini berjalan.' });
         
         if (guests.length > 0) {
-          await syncAllGuestsCloud(guests);
+          await replaceAllGuestsCloud(guests);
         }
         if (wishes.length > 0) {
           for (const w of wishes) {
@@ -586,12 +586,12 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
         localStorage.setItem('admin_guest_list', JSON.stringify(newGuests));
         setGuests(newGuests);
         setShowBulkImport(false);
-        syncAllGuestsCloud(newGuests);
+        replaceAllGuestsCloud(newGuests);
 
         if (onToast) {
           onToast({
             title: 'File Excel Berhasil Dimuat!',
-            message: `${newGuests.length} tamu dari file ${file.name} berhasil dimuat & disinkronkan ke Cloud.`
+            message: `${newGuests.length} tamu dari file ${file.name} berhasil dimuat & dioverwrite di Cloud.`
           });
         }
       } catch (err) {
@@ -681,8 +681,8 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
       setGuests(newItems);
       setBulkInput('');
       setShowBulkImport(false);
-      syncAllGuestsCloud(newItems);
-      if (onToast) onToast({ title: 'Import Berhasil', message: `${newItems.length} tamu berhasil dimuat dan disinkronkan ke Cloud.` });
+      replaceAllGuestsCloud(newItems);
+      if (onToast) onToast({ title: 'Import Berhasil', message: `${newItems.length} tamu berhasil dimuat dan dioverwrite ke Cloud.` });
     } else {
       setShowBulkImport(false);
       if (onToast) onToast({ title: 'Selesai', message: 'Data tamu berhasil diperbarui.' });
@@ -747,11 +747,11 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
       }));
       setGuests(reloaded);
       localStorage.setItem('admin_guest_list', JSON.stringify(reloaded));
-      await syncAllGuestsCloud(reloaded);
+      await replaceAllGuestsCloud(reloaded);
       if (onToast) {
         onToast({
           title: 'Daftar Tamu Direset',
-          message: `${reloaded.length} tamu dari file Excel terbaru berhasil dimuat ulang & disinkronkan ke Cloud.`
+          message: `${reloaded.length} tamu dari file Excel terbaru berhasil dimuat ulang & dioverwrite di Cloud.`
         });
       }
     }
@@ -1709,7 +1709,7 @@ Ridwan & Xaviera`;
                       <button
                         type="button"
                         onClick={async () => {
-                          if (guests.length > 0) await syncAllGuestsCloud(guests);
+                          if (guests.length > 0) await replaceAllGuestsCloud(guests);
                           if (onToast) onToast({ title: 'Sinkronisasi Selesai', message: 'Seluruh data lokal berhasil diunggah ulang ke Cloud.' });
                         }}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all"

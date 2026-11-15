@@ -6,10 +6,12 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc, 
+  getDocs,
   onSnapshot, 
   query, 
   orderBy, 
-  writeBatch 
+  writeBatch,
+  serverTimestamp 
 } from 'firebase/firestore';
 
 // Helper retrieve config from localStorage or Vite ENV
@@ -74,14 +76,16 @@ export const isCloudConnected = () => {
   return Boolean(getDb());
 };
 
-// ==========================================
-// 1. WISHES / UCAPAN REALTIME LISTENERS
-// ==========================================
+// ===============================================================
+// 1. UCAPAN & DOA REALTIME (GLOBAL COLLECTION: 'wishes')
+// Struktur Field: nama, kehadiran, ucapan, createdAt, isPinned, replyMessage
+// Realtime Listener: onSnapshot dengan orderBy('createdAt', 'desc')
+// ===============================================================
 
 export const subscribeToWishes = (onSuccess, onError) => {
   const db = getDb();
   if (!db) {
-    // Fallback: Read from localStorage
+    // Fallback: baca dari localStorage jika belum terkoneksi Firebase
     const saved = localStorage.getItem('wedding_wishes');
     if (saved) {
       try {
@@ -92,56 +96,97 @@ export const subscribeToWishes = (onSuccess, onError) => {
   }
 
   try {
-    const q = query(collection(db, 'wishes'), orderBy('createdAtTimestamp', 'desc'));
+    // Query realtime terurut waktu terbaru
+    const q = query(collection(db, 'wishes'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         const wishes = [];
         snapshot.forEach((docSnap) => {
-          wishes.push({ id: docSnap.id, ...docSnap.data() });
+          const data = docSnap.data();
+          const sender = data.nama || data.senderName || 'Tamu Undangan';
+          const badge = data.kehadiran || data.attendanceBadge || 'Hadir';
+          const msg = data.ucapan || data.message || '';
+          
+          let formattedTime = 'Baru saja';
+          if (data.createdAt?.toDate) {
+            formattedTime = data.createdAt.toDate().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+          } else if (data.createdAtLocal) {
+            formattedTime = data.createdAtLocal;
+          }
+
+          wishes.push({
+            id: docSnap.id,
+            // Struktur field sesuai instruksi:
+            nama: sender,
+            kehadiran: badge,
+            ucapan: msg,
+            // Kompatibilitas dengan komponen UI:
+            senderName: sender,
+            attendanceBadge: badge,
+            message: msg,
+            replyMessage: data.replyMessage || null,
+            isPinned: Boolean(data.isPinned),
+            createdAt: formattedTime,
+            ...data
+          });
         });
 
-        // Also backup to localStorage
+        // Backup lokal
         localStorage.setItem('wedding_wishes', JSON.stringify(wishes));
         window.dispatchEvent(new Event('wedding_wishes_updated'));
         onSuccess(wishes);
       },
       (err) => {
-        console.error('Realtime Wishes error:', err);
+        console.error('Realtime Wishes error (onSnapshot):', err);
         if (onError) onError(err);
       }
     );
     return unsubscribe;
   } catch (err) {
-    console.error('Error subscribe to wishes:', err);
+    console.error('Error subscribeToWishes:', err);
     return () => {};
   }
 };
 
 export const addWishCloud = async (wish) => {
   const db = getDb();
-  const wishData = {
-    ...wish,
-    createdAtTimestamp: Date.now()
+  const nama = wish.nama || wish.senderName || '';
+  const kehadiran = wish.kehadiran || wish.attendanceBadge || 'Hadir';
+  const ucapan = wish.ucapan || wish.message || '';
+
+  const docId = wish.id || ('wish-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6));
+
+  const wishPayload = {
+    nama: nama,
+    kehadiran: kehadiran,
+    ucapan: ucapan,
+    senderName: nama,
+    attendanceBadge: kehadiran,
+    message: ucapan,
+    replyMessage: wish.replyMessage || null,
+    isPinned: Boolean(wish.isPinned),
+    createdAt: serverTimestamp(),
+    createdAtLocal: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
   };
 
-  // Always save to localStorage immediately
+  // Simpan ke local storage segera
   const saved = localStorage.getItem('wedding_wishes');
   let currentList = [];
   if (saved) {
     try { currentList = JSON.parse(saved); } catch (e) {}
   }
-  const updatedList = [wishData, ...currentList.filter(w => w.id !== wish.id)];
+  const updatedList = [{ id: docId, ...wishPayload }, ...currentList.filter(w => w.id !== docId)];
   localStorage.setItem('wedding_wishes', JSON.stringify(updatedList));
   window.dispatchEvent(new Event('wedding_wishes_updated'));
 
-  // Sync to Cloud
+  // Sinkronkan ke Firebase Firestore Global Path 'wishes'
   if (db) {
     try {
-      const docRef = doc(db, 'wishes', String(wish.id));
-      await setDoc(docRef, wishData, { merge: true });
+      const docRef = doc(db, 'wishes', String(docId));
+      await setDoc(docRef, wishPayload, { merge: true });
     } catch (err) {
-      console.error('Gagal simpan ucapan ke cloud:', err);
+      console.error('Gagal kirim ucapan ke Firebase Firestore:', err);
     }
   }
 };
@@ -166,7 +211,7 @@ export const updateWishCloud = async (wishId, updates) => {
       const docRef = doc(db, 'wishes', String(wishId));
       await updateDoc(docRef, updates);
     } catch (err) {
-      console.error('Gagal update ucapan di cloud:', err);
+      console.error('Gagal update ucapan di Firebase:', err);
     }
   }
 };
@@ -191,14 +236,16 @@ export const deleteWishCloud = async (wishId) => {
       const docRef = doc(db, 'wishes', String(wishId));
       await deleteDoc(docRef);
     } catch (err) {
-      console.error('Gagal hapus ucapan dari cloud:', err);
+      console.error('Gagal hapus ucapan dari Firebase:', err);
     }
   }
 };
 
-// ==========================================
-// 2. GUESTS / DAFTAR TAMU REALTIME LISTENERS
-// ==========================================
+// ===============================================================
+// 2. DAFTAR TAMU & IMPORT EXCEL REALTIME (GLOBAL COLLECTION: 'guests')
+// Tersinkronisasi lintas akun Google tanpa reload
+// Mekanisme Batch Overwrite saat import Excel baru
+// ===============================================================
 
 export const subscribeToGuests = (onSuccess, onError) => {
   const db = getDb();
@@ -222,27 +269,28 @@ export const subscribeToGuests = (onSuccess, onError) => {
           guests.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Backup to localStorage
+        // Backup ke localStorage
         localStorage.setItem('admin_guest_list', JSON.stringify(guests));
         window.dispatchEvent(new Event('admin_guest_list_updated'));
         onSuccess(guests);
       },
       (err) => {
-        console.error('Realtime Guests error:', err);
+        console.error('Realtime Guests error (onSnapshot):', err);
         if (onError) onError(err);
       }
     );
     return unsubscribe;
   } catch (err) {
-    console.error('Error subscribe to guests:', err);
+    console.error('Error subscribeToGuests:', err);
     return () => {};
   }
 };
 
+// Simpan/tambah single guest
 export const saveGuestCloud = async (guest) => {
   const db = getDb();
 
-  // Local update
+  // Update local
   const saved = localStorage.getItem('admin_guest_list');
   let currentList = [];
   if (saved) {
@@ -252,17 +300,18 @@ export const saveGuestCloud = async (guest) => {
   localStorage.setItem('admin_guest_list', JSON.stringify(updatedList));
   window.dispatchEvent(new Event('admin_guest_list_updated'));
 
-  // Cloud update
+  // Update cloud
   if (db) {
     try {
       const docRef = doc(db, 'guests', String(guest.id));
-      await setDoc(docRef, guest, { merge: true });
+      await setDoc(docRef, { ...guest, updatedAt: serverTimestamp() }, { merge: true });
     } catch (err) {
-      console.error('Gagal simpan tamu ke cloud:', err);
+      console.error('Gagal simpan tamu ke Firebase:', err);
     }
   }
 };
 
+// Update status tamu (misal: isSent WhatsApp atau RSVP)
 export const updateGuestCloud = async (guestId, updates) => {
   const db = getDb();
 
@@ -281,34 +330,72 @@ export const updateGuestCloud = async (guestId, updates) => {
   if (db) {
     try {
       const docRef = doc(db, 'guests', String(guestId));
-      await updateDoc(docRef, updates);
+      await updateDoc(docRef, { ...updates, updatedAt: serverTimestamp() });
     } catch (err) {
-      console.error('Gagal update tamu di cloud:', err);
+      console.error('Gagal update status tamu di Firebase:', err);
     }
   }
 };
 
-export const syncAllGuestsCloud = async (guests) => {
+// MEKANISME REPLACE / BATCH OVERWRITE FILE EXCEL:
+// Menghapus data tamu lama di Firebase dan menulis seluruh data tamu baru dari file Excel
+export const replaceAllGuestsCloud = async (newGuests) => {
   const db = getDb();
 
-  // Local update
-  localStorage.setItem('admin_guest_list', JSON.stringify(guests));
-  localStorage.setItem('last_imported_excel_guests', JSON.stringify(guests));
+  // Update local storage
+  localStorage.setItem('admin_guest_list', JSON.stringify(newGuests));
+  localStorage.setItem('last_imported_excel_guests', JSON.stringify(newGuests));
   window.dispatchEvent(new Event('admin_guest_list_updated'));
 
-  // Cloud Batch Write
-  if (db && Array.isArray(guests)) {
-    try {
-      const batch = writeBatch(db);
-      guests.forEach((guest) => {
-        const docRef = doc(db, 'guests', String(guest.id));
-        batch.set(docRef, guest, { merge: true });
-      });
-      await batch.commit();
-      console.log(`Berhasil sinkronisasi ${guests.length} tamu ke cloud database.`);
-    } catch (err) {
-      console.error('Gagal batch sync tamu ke cloud:', err);
+  if (!db || !Array.isArray(newGuests)) return;
+
+  try {
+    // 1. Ambil seluruh data tamu lama di collection 'guests'
+    const snapshot = await getDocs(collection(db, 'guests'));
+    
+    // 2. Batch Delete seluruh tamu lama (per batch maksimal 450 item)
+    const BATCH_LIMIT = 450;
+    let batch = writeBatch(db);
+    let operationCount = 0;
+
+    for (const docSnap of snapshot.docs) {
+      batch.delete(docSnap.ref);
+      operationCount++;
+      if (operationCount >= BATCH_LIMIT) {
+        await batch.commit();
+        batch = writeBatch(db);
+        operationCount = 0;
+      }
     }
+    if (operationCount > 0) {
+      await batch.commit();
+      batch = writeBatch(db);
+      operationCount = 0;
+    }
+
+    // 3. Batch Set seluruh tamu baru dari file Excel
+    for (const guest of newGuests) {
+      const guestRef = doc(db, 'guests', String(guest.id));
+      batch.set(guestRef, {
+        ...guest,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      operationCount++;
+      if (operationCount >= BATCH_LIMIT) {
+        await batch.commit();
+        batch = writeBatch(db);
+        operationCount = 0;
+      }
+    }
+    if (operationCount > 0) {
+      await batch.commit();
+    }
+
+    console.log(`Berhasil overwrite & sinkronisasi ${newGuests.length} tamu Excel ke Firebase Firestore.`);
+  } catch (err) {
+    console.error('Gagal batch overwrite tamu ke Firebase:', err);
+    throw err;
   }
 };
 
@@ -332,7 +419,7 @@ export const deleteGuestCloud = async (guestId) => {
       const docRef = doc(db, 'guests', String(guestId));
       await deleteDoc(docRef);
     } catch (err) {
-      console.error('Gagal hapus tamu dari cloud:', err);
+      console.error('Gagal hapus tamu dari Firebase:', err);
     }
   }
 };

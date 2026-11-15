@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // 1. COLLECTION UCAPAN & DOA (Global Path: /wishes/{wishId})
+    // ===============================================================
+    // - Semua pengunjung dapat membaca seluruh ucapan doa
+    // - Semua pengunjung dapat mengirim ucapan doa baru dengan validasi data
+    // - Hanya admin/pengantin (terotentikasi) yang dapat mengubah balasan, pin, atau menghapus
+    match /wishes/{wishId} {
+      allow read: if true;
+      
+      allow create: if request.resource.data.nama is string
+                    && request.resource.data.ucapan is string
+                    && request.resource.data.kehadiran in ['Hadir', 'Tidak Hadir', 'Berhalangan', 'Ragu-ragu'];
+                    
+      // Pembaruan balasan / pin oleh admin atau mode pengujian
+      allow update, delete: if true; // Untuk produksi ketat, gunakan: if request.auth != null;
+    }
+
+    // ===============================================================
+    // 2. COLLECTION DAFTAR TAMU & IMPORT EXCEL (Global Path: /guests/{guestId})
+    // ===============================================================
+    // - Pengunjung & generator link dapat membaca data tamu (?to=Nama+Tamu)
+    // - Admin dapat membaca, membuat, memperbarui, dan menimpa/menghapus (replace/batch overwrite)
+    match /guests/{guestId} {
+      allow read: if true;
+      
+      // Mengizinkan admin yang sudah login akun Google (atau mode pengujian)
+      // untuk meng-import dan menimpa (batch overwrite) daftar tamu
+      allow write: if true; // Untuk produksi ketat dengan Firebase Auth: if request.auth != null;
+    }
+  }
+}
