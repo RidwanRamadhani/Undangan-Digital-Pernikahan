@@ -1792,7 +1792,6 @@ Ridwan & Xaviera`;
                       type="password"
                       maxLength={4}
                       required
-                      placeholder="Contoh: 0202"
                       value={newPinInput}
                       onChange={(e) => setNewPinInput(e.target.value)}
                       className="w-full text-center text-xl font-mono tracking-widest px-4 py-3 rounded-xl border border-botanical-gold/40 focus:ring-2 focus:ring-botanical-gold outline-none"
