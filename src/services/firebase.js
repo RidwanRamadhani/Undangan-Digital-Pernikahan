@@ -299,13 +299,36 @@ export const deleteWishCloud = async (wishId) => {
 // Mekanisme Batch Overwrite saat import Excel baru
 // ===============================================================
 
+// Helper konversi format nomor HP ke format standar WhatsApp Internasional (628xxxx)
+export const formatPhoneNumber = (val) => {
+  if (!val) return '';
+  let str = String(val).trim().replace(/[^0-9]/g, '');
+  if (!str) return '';
+  // Hapus awalan 620 jika user tidak sengaja mengetik 6208...
+  if (str.startsWith('620')) {
+    str = '62' + str.substring(3);
+  } else if (str.startsWith('0')) {
+    // 0813... -> 62813...
+    str = '62' + str.substring(1);
+  } else if (str.startsWith('8')) {
+    // 813... -> 62813...
+    str = '62' + str;
+  } else if (!str.startsWith('62') && str.length >= 9) {
+    str = '62' + str;
+  }
+  return str;
+};
+
 export const subscribeToGuests = (onSuccess, onError) => {
   const db = getDb();
   if (!db) {
     const saved = localStorage.getItem('admin_guest_list');
     if (saved) {
       try {
-        onSuccess(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          onSuccess(parsed.map(g => ({ ...g, phone: formatPhoneNumber(g?.phone) })));
+        }
       } catch (e) {}
     }
     return () => {};
@@ -318,7 +341,12 @@ export const subscribeToGuests = (onSuccess, onError) => {
       (snapshot) => {
         const guests = [];
         snapshot.forEach((docSnap) => {
-          guests.push({ id: docSnap.id, ...docSnap.data() });
+          const data = docSnap.data();
+          guests.push({
+            id: docSnap.id,
+            ...data,
+            phone: formatPhoneNumber(data?.phone)
+          });
         });
 
         // Backup ke localStorage
@@ -341,6 +369,10 @@ export const subscribeToGuests = (onSuccess, onError) => {
 // Simpan/tambah single guest
 export const saveGuestCloud = async (guest) => {
   const db = getDb();
+  const sanitizedGuest = {
+    ...guest,
+    phone: formatPhoneNumber(guest?.phone)
+  };
 
   // Update local
   const saved = localStorage.getItem('admin_guest_list');
@@ -348,15 +380,15 @@ export const saveGuestCloud = async (guest) => {
   if (saved) {
     try { currentList = JSON.parse(saved); } catch (e) {}
   }
-  const updatedList = [guest, ...currentList.filter(g => g.id !== guest.id)];
+  const updatedList = [sanitizedGuest, ...currentList.filter(g => g.id !== sanitizedGuest.id)];
   localStorage.setItem('admin_guest_list', JSON.stringify(updatedList));
   window.dispatchEvent(new Event('admin_guest_list_updated'));
 
   // Update cloud
   if (db) {
     try {
-      const docRef = doc(db, 'guests', String(guest.id));
-      await setDoc(docRef, { ...guest, updatedAt: serverTimestamp() }, { merge: true });
+      const docRef = doc(db, 'guests', String(sanitizedGuest.id));
+      await setDoc(docRef, { ...sanitizedGuest, updatedAt: serverTimestamp() }, { merge: true });
     } catch (err) {
       console.error('Gagal simpan tamu ke Firebase:', err);
     }
@@ -393,13 +425,17 @@ export const updateGuestCloud = async (guestId, updates) => {
 // Menghapus data tamu lama di Firebase dan menulis seluruh data tamu baru dari file Excel
 export const replaceAllGuestsCloud = async (newGuests) => {
   const db = getDb();
+  const sanitizedGuests = (newGuests || []).map(g => ({
+    ...g,
+    phone: formatPhoneNumber(g?.phone)
+  }));
 
   // Update local storage
-  localStorage.setItem('admin_guest_list', JSON.stringify(newGuests));
-  localStorage.setItem('last_imported_excel_guests', JSON.stringify(newGuests));
+  localStorage.setItem('admin_guest_list', JSON.stringify(sanitizedGuests));
+  localStorage.setItem('last_imported_excel_guests', JSON.stringify(sanitizedGuests));
   window.dispatchEvent(new Event('admin_guest_list_updated'));
 
-  if (!db || !Array.isArray(newGuests)) return;
+  if (!db || !Array.isArray(sanitizedGuests)) return;
 
   try {
     // 1. Ambil seluruh data tamu lama di collection 'guests'
@@ -426,7 +462,7 @@ export const replaceAllGuestsCloud = async (newGuests) => {
     }
 
     // 3. Batch Set seluruh tamu baru dari file Excel
-    for (const guest of newGuests) {
+    for (const guest of sanitizedGuests) {
       const guestRef = doc(db, 'guests', String(guest.id));
       batch.set(guestRef, {
         ...guest,
@@ -444,7 +480,7 @@ export const replaceAllGuestsCloud = async (newGuests) => {
       await batch.commit();
     }
 
-    console.log(`Berhasil overwrite & sinkronisasi ${newGuests.length} tamu Excel ke Firebase Firestore.`);
+    console.log(`Berhasil overwrite & sinkronisasi ${sanitizedGuests.length} tamu Excel ke Firebase Firestore.`);
   } catch (err) {
     console.error('Gagal batch overwrite tamu ke Firebase:', err);
     throw err;

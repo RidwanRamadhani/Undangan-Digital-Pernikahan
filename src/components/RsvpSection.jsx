@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { CheckCircle2, Send, User, Users, Calendar, Heart, Phone, Sparkles, RefreshCw } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
-import { addWishCloud, saveGuestCloud } from '../services/firebase';
+import { addWishCloud, saveGuestCloud, formatPhoneNumber } from '../services/firebase';
 
 export default function RsvpSection({ guestName, maxPax = 2, onToast, onNewRsvp }) {
   const [formData, setFormData] = useState({
@@ -36,11 +36,13 @@ export default function RsvpSection({ guestName, maxPax = 2, onToast, onNewRsvp 
       ? 'Hadir' 
       : (formData.attendance === 'not_attending' ? 'Berhalangan' : 'Ragu-ragu');
 
+    const cleanPhone = formatPhoneNumber(formData.whatsapp);
+
     const submission = {
       id: uniqueId,
       name: formData.name.trim(),
-      whatsapp: formData.whatsapp ? formData.whatsapp.trim() : '',
-      phone: formData.whatsapp ? formData.whatsapp.trim() : '',
+      whatsapp: cleanPhone,
+      phone: cleanPhone,
       attendance: formData.attendance,
       rsvp: rsvpStatus,
       pax: Number(formData.pax) || 1,

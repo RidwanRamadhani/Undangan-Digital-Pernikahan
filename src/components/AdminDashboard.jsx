@@ -85,7 +85,10 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
     // 1. Subscribe to Cloud Guests
     const unsubGuests = subscribeToGuests((cloudGuests) => {
       if (Array.isArray(cloudGuests) && cloudGuests.length > 0) {
-        setGuests(cloudGuests);
+        setGuests(cloudGuests.map(g => ({
+          ...g,
+          phone: formatPhoneNumber(g?.phone)
+        })));
         setIsCloudSyncActive(true);
       }
     });
@@ -138,9 +141,15 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
   const formatPhoneNumber = (val) => {
     if (!val) return '';
     let str = String(val).trim().replace(/[^0-9]/g, '');
-    if (str.startsWith('08')) {
+    if (!str) return '';
+    // Hapus awalan 620 jika user tidak sengaja mengetik 6208...
+    if (str.startsWith('620')) {
+      str = '62' + str.substring(3);
+    } else if (str.startsWith('0')) {
+      // 0813... -> 62813...
       str = '62' + str.substring(1);
     } else if (str.startsWith('8')) {
+      // 813... -> 62813...
       str = '62' + str;
     } else if (!str.startsWith('62') && str.length >= 9) {
       str = '62' + str;
@@ -237,6 +246,11 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
         isModified = true;
       }
     });
+
+    merged = merged.map(g => ({
+      ...g,
+      phone: formatPhoneNumber(g?.phone)
+    }));
 
     localStorage.setItem('admin_guest_list', JSON.stringify(merged));
     setGuests(merged);
@@ -806,8 +820,8 @@ Ridwan & Xaviera`;
   // Get WhatsApp Direct URL
   const getWhatsAppUrl = (guest) => {
     const text = encodeURIComponent(getWhatsAppMessage(guest));
-    if (guest.phone && guest.phone.trim()) {
-      const cleanPhone = guest.phone.trim().replace(/[^0-9]/g, '');
+    const cleanPhone = formatPhoneNumber(guest?.phone);
+    if (cleanPhone) {
       return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`;
     }
     // Jika tidak ada nomor WA di Excel, membuka dialog pemilih kontak di WhatsApp
@@ -1241,7 +1255,7 @@ Ridwan & Xaviera`;
                                 {/* Badge Nomor WhatsApp dari Excel */}
                                 {g.phone ? (
                                   <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-mono font-medium">
-                                    WA: {g.phone}
+                                    WA: {formatPhoneNumber(g.phone)}
                                   </span>
                                 ) : (
                                   <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-[9px]">
@@ -1277,7 +1291,7 @@ Ridwan & Xaviera`;
                                 if (onToast) onToast({ title: 'Membuka WhatsApp', message: `Membuka pesan personal untuk ${g.name}.` });
                               }}
                               className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow hover:scale-102"
-                              title={g.phone ? `Kirim langsung ke WA ${g.phone}` : "Buka WhatsApp & pilih kontak"}
+                              title={g.phone ? `Kirim langsung ke WA ${formatPhoneNumber(g.phone)}` : "Buka WhatsApp & pilih kontak"}
                             >
                               <Send className="w-3.5 h-3.5" />
                               <span>Kirim WA</span>
