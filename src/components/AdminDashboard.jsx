@@ -87,11 +87,15 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
 
     // 1. Subscribe to Cloud Guests
     const unsubGuests = subscribeToGuests((cloudGuests) => {
-      if (Array.isArray(cloudGuests) && cloudGuests.length > 0) {
-        setGuests(cloudGuests.map(g => ({
-          ...g,
-          phone: formatPhoneNumber(g?.phone)
-        })));
+      if (Array.isArray(cloudGuests)) {
+        const cleanGuests = cloudGuests
+          .filter(g => g && g.name && typeof g.name === 'string' && !g.pin && !String(g.id).includes('pin'))
+          .map(g => ({
+            ...g,
+            name: String(g.name).trim(),
+            phone: formatPhoneNumber(g?.phone)
+          }));
+        setGuests(cleanGuests);
         setIsCloudSyncActive(true);
       }
     });
@@ -212,7 +216,9 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
     const savedAdmin = localStorage.getItem('admin_guest_list');
     if (savedAdmin) {
       try {
-        adminList = JSON.parse(savedAdmin) || [];
+        adminList = (JSON.parse(savedAdmin) || []).filter(
+          g => g && g.name && typeof g.name === 'string' && !g.pin && !String(g.id).includes('pin')
+        );
       } catch (e) {
         adminList = [];
       }
@@ -223,7 +229,9 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
       const savedMaster = localStorage.getItem('last_imported_excel_guests');
       if (savedMaster) {
         try {
-          adminList = JSON.parse(savedMaster) || [];
+          adminList = (JSON.parse(savedMaster) || []).filter(
+            g => g && g.name && typeof g.name === 'string' && !g.pin && !String(g.id).includes('pin')
+          );
         } catch (e) {}
       }
       if (adminList.length === 0) {
@@ -296,10 +304,13 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
       }
     });
 
-    merged = merged.map(g => ({
-      ...g,
-      phone: formatPhoneNumber(g?.phone)
-    }));
+    merged = merged
+      .filter(g => g && g.name && typeof g.name === 'string' && !g.pin && !String(g.id).includes('pin'))
+      .map(g => ({
+        ...g,
+        name: String(g.name).trim(),
+        phone: formatPhoneNumber(g?.phone)
+      }));
 
     localStorage.setItem('admin_guest_list', JSON.stringify(merged));
     setGuests(merged);
@@ -325,12 +336,13 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
   }, [isOpen]);
 
   // Statistics Calculation
-  const totalInvitations = guests.length;
-  const attendingGuests = guests.filter(g => g.rsvp === 'Hadir');
-  const notAttendingGuests = guests.filter(g => g.rsvp === 'Berhalangan');
-  const pendingGuests = guests.filter(g => g.rsvp !== 'Hadir' && g.rsvp !== 'Berhalangan');
+  const validGuests = guests.filter(g => g && g.name && typeof g.name === 'string' && !g.pin);
+  const totalInvitations = validGuests.length;
+  const attendingGuests = validGuests.filter(g => g.rsvp === 'Hadir');
+  const notAttendingGuests = validGuests.filter(g => g.rsvp === 'Berhalangan');
+  const pendingGuests = validGuests.filter(g => g.rsvp !== 'Hadir' && g.rsvp !== 'Berhalangan');
   const totalHeadcount = attendingGuests.reduce((acc, curr) => acc + (Number(curr.pax) || 1), 0);
-  const sentCount = guests.filter(g => g.isSent).length;
+  const sentCount = validGuests.filter(g => g.isSent).length;
   const unsentCount = totalInvitations - sentCount;
 
   // PIN verification
@@ -911,9 +923,11 @@ Ridwan & Xaviera`;
 
   // Filtered Guests based on Search and Filter tab
   const filteredGuests = guests.filter(g => {
-    const matchSearch = 
-      g.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      (g.phone && g.phone.includes(searchTerm));
+    if (!g || !g.name || typeof g.name !== 'string') return false;
+    const nameLower = g.name.toLowerCase();
+    const phoneStr = g.phone ? String(g.phone) : '';
+    const searchLower = searchTerm.toLowerCase();
+    const matchSearch = nameLower.includes(searchLower) || phoneStr.includes(searchTerm);
     if (filterSent === 'sent') return matchSearch && g.isSent;
     if (filterSent === 'unsent') return matchSearch && !g.isSent;
     return matchSearch;

@@ -15,7 +15,8 @@ export default class ErrorBoundary extends React.Component {
   }
 
   handleReload = () => {
-    localStorage.removeItem('wedding_wishes'); // clean any bad local cache
+    localStorage.removeItem('wedding_wishes');
+    localStorage.removeItem('admin_guest_list');
     window.location.reload();
   };
 

@@ -328,7 +328,10 @@ export const subscribeToGuests = (onSuccess, onError) => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          onSuccess(parsed.map(g => ({ ...g, phone: formatPhoneNumber(g?.phone) })));
+          const validList = parsed
+            .filter(g => g && g.name && typeof g.name === 'string' && !g.pin && !String(g.id).includes('pin'))
+            .map(g => ({ ...g, name: String(g.name).trim(), phone: formatPhoneNumber(g?.phone) }));
+          onSuccess(validList);
         }
       } catch (e) {}
     }
@@ -342,11 +345,26 @@ export const subscribeToGuests = (onSuccess, onError) => {
       (snapshot) => {
         const guests = [];
         snapshot.forEach((docSnap) => {
-          if (docSnap.id === 'system_pin' || docSnap.id.startsWith('__system_')) return;
           const data = docSnap.data();
+          // Filter ketat: Pastikan HANYA dokumen tamu asli dengan nama yang valid
+          if (
+            !data || 
+            !data.name || 
+            typeof data.name !== 'string' || 
+            data.name.trim() === '' || 
+            data.name === '__SYSTEM_PIN__' || 
+            data.pin || 
+            docSnap.id === 'system_pin' || 
+            docSnap.id.includes('pin') || 
+            docSnap.id.startsWith('__')
+          ) {
+            return;
+          }
+
           guests.push({
             id: docSnap.id,
             ...data,
+            name: String(data.name).trim(),
             phone: formatPhoneNumber(data?.phone)
           });
         });
