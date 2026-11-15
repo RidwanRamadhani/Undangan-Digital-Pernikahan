@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Heart, Pin, CheckCircle2, XCircle, Clock, ShieldCheck, CornerDownRight, Trash2, Edit3 } from 'lucide-react';
+import { MessageSquare, Send, Heart, Pin, CheckCircle2, XCircle, Clock, ShieldCheck, CornerDownRight, Trash2, Edit3, Wifi, WifiOff } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
+import { subscribeToWishes, addWishCloud, updateWishCloud, isCloudConnected } from '../services/firebase';
 
 export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAdmin, onToast }) {
   const [wishes, setWishes] = useState(() => {
@@ -24,6 +25,7 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
   const [lastSubmitTime, setLastSubmitTime] = useState(0);
   const [replyingWishId, setReplyingWishId] = useState(null);
   const [replyText, setReplyText] = useState('');
+  const [isOnline, setIsOnline] = useState(isCloudConnected());
 
   useEffect(() => {
     if (guestName) {
@@ -31,8 +33,19 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
     }
   }, [guestName]);
 
-  // Real-time synchronization when RSVP form or Admin submits/updates a wish
+  // Real-time synchronization: Firebase Cloud Listener + Local Fallback Event
   useEffect(() => {
+    setIsOnline(isCloudConnected());
+
+    // 1. Subscribe to Real-time Cloud
+    const unsubscribeCloud = subscribeToWishes((cloudWishes) => {
+      if (Array.isArray(cloudWishes) && cloudWishes.length > 0) {
+        setWishes(cloudWishes);
+        setIsOnline(true);
+      }
+    });
+
+    // 2. Real-time local events
     const handleWishesUpdate = () => {
       const saved = localStorage.getItem('wedding_wishes');
       if (saved) {
@@ -44,12 +57,13 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
     window.addEventListener('wedding_wishes_updated', handleWishesUpdate);
     window.addEventListener('storage', handleWishesUpdate);
     return () => {
+      unsubscribeCloud();
       window.removeEventListener('wedding_wishes_updated', handleWishesUpdate);
       window.removeEventListener('storage', handleWishesUpdate);
     };
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const now = Date.now();
@@ -85,10 +99,8 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
       createdAt: 'Baru saja'
     };
 
-    const updated = [newWish, ...wishes];
-    setWishes(updated);
-    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
-    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    // Save to Real-time Cloud (and LocalStorage)
+    await addWishCloud(newWish);
     setLastSubmitTime(now);
 
     setFormData({
@@ -100,26 +112,24 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
     if (onToast) {
       onToast({
         title: 'Doa Terkirim',
-        message: 'Terima kasih atas untaian doa dan ucapan hangat Anda!'
+        message: 'Terima kasih! Ucapan doa Anda berhasil dipublikasikan secara real-time.'
       });
     }
   };
 
   // ADMIN ACTION: Toggle Pin/Sematkan Komentar
-  const handleTogglePin = (id) => {
+  const handleTogglePin = async (id) => {
     if (!isAdmin) return;
-    const updated = wishes.map((item) =>
-      item.id === id ? { ...item, isPinned: !item.isPinned } : item
-    );
-    setWishes(updated);
-    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
-    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    const target = wishes.find((item) => item.id === id);
+    if (!target) return;
+    const newPinned = !target.isPinned;
 
-    const target = updated.find((item) => item.id === id);
+    await updateWishCloud(id, { isPinned: newPinned });
+
     if (onToast) {
       onToast({
-        title: target.isPinned ? 'Ucapan Disematkan' : 'Sematan Dilepas',
-        message: target.isPinned
+        title: newPinned ? 'Ucapan Disematkan' : 'Sematan Dilepas',
+        message: newPinned
           ? `Komentar ${target.senderName} disematkan ke posisi teratas.`
           : `Sematan komentar ${target.senderName} berhasil dilepas.`
       });
@@ -139,7 +149,7 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
   };
 
   // ADMIN ACTION: Save Couple Reply
-  const handleSaveReply = (id) => {
+  const handleSaveReply = async (id) => {
     if (!isAdmin) return;
     if (!replyText.trim()) {
       if (onToast) {
@@ -148,32 +158,22 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
       return;
     }
 
-    const updated = wishes.map((item) =>
-      item.id === id ? { ...item, replyMessage: replyText.trim() } : item
-    );
-    setWishes(updated);
-    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
-    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    await updateWishCloud(id, { replyMessage: replyText.trim() });
     setReplyingWishId(null);
     setReplyText('');
 
     if (onToast) {
       onToast({
         title: 'Balasan Terkirim',
-        message: 'Balasan Ridwan & Xaviera berhasil dipublikasikan pada dinding ucapan.'
+        message: 'Balasan Ridwan & Xaviera berhasil dipublikasikan secara real-time.'
       });
     }
   };
 
   // ADMIN ACTION: Delete Couple Reply
-  const handleDeleteReply = (id) => {
+  const handleDeleteReply = async (id) => {
     if (!isAdmin) return;
-    const updated = wishes.map((item) =>
-      item.id === id ? { ...item, replyMessage: null } : item
-    );
-    setWishes(updated);
-    localStorage.setItem('wedding_wishes', JSON.stringify(updated));
-    window.dispatchEvent(new Event('wedding_wishes_updated'));
+    await updateWishCloud(id, { replyMessage: null });
     setReplyingWishId(null);
     setReplyText('');
 

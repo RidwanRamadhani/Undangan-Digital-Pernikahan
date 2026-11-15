@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { CheckCircle2, Send, User, Users, Calendar, Heart, Phone, Sparkles, RefreshCw } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
+import { addWishCloud, saveGuestCloud } from '../services/firebase';
 
 export default function RsvpSection({ guestName, maxPax = 2, onToast, onNewRsvp }) {
   const [formData, setFormData] = useState({
@@ -92,6 +93,10 @@ export default function RsvpSection({ guestName, maxPax = 2, onToast, onNewRsvp 
     }
     localStorage.setItem('admin_guest_list', JSON.stringify(existingAdminGuests));
 
+    // Sinkronkan data tamu RSVP ke Cloud secara real-time
+    const currentGuestItem = adminMatchIdx !== -1 ? existingAdminGuests[adminMatchIdx] : existingAdminGuests[0];
+    saveGuestCloud(currentGuestItem);
+
     // 3. Simpan juga pesan doa restu ke Wishes Wall bila diisi
     if (submission.note) {
       try {
@@ -100,15 +105,17 @@ export default function RsvpSection({ guestName, maxPax = 2, onToast, onNewRsvp 
           w => w.senderName && w.senderName.trim().toLowerCase() === submission.name.toLowerCase() && w.message.trim() === submission.note
         );
         if (!wishExists) {
-          savedWishes.unshift({
+          const newRsvpWish = {
             id: 'wish-rsvp-' + Date.now(),
             senderName: submission.name,
             attendanceBadge: rsvpStatus,
             message: submission.note,
             createdAt: 'Baru saja'
-          });
+          };
+          savedWishes.unshift(newRsvpWish);
           localStorage.setItem('wedding_wishes', JSON.stringify(savedWishes));
           window.dispatchEvent(new Event('wedding_wishes_updated'));
+          addWishCloud(newRsvpWish);
         }
       } catch (err) {
         console.error(err);
