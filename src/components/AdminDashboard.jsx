@@ -16,6 +16,8 @@ import {
   addWishCloud,
   updateWishCloud, 
   deleteWishCloud,
+  subscribeToAdminPin,
+  saveAdminPinCloud,
   getActiveFirebaseConfig,
   initFirebase,
   isCloudConnected
@@ -129,6 +131,31 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
       window.removeEventListener('storage', syncWishes);
     };
   }, [isOpen]);
+
+  // Subscribe to Cloud Realtime PIN (Sinkronisasi PIN Global Lintas Seluruh Perangkat)
+  useEffect(() => {
+    const unsubPin = subscribeToAdminPin((cloudPin) => {
+      if (cloudPin && typeof cloudPin === 'string' && cloudPin.length === 4) {
+        setStoredPin(cloudPin);
+        localStorage.setItem('wedding_admin_pin', cloudPin);
+      }
+    });
+
+    const handlePinSync = () => {
+      const local = localStorage.getItem('wedding_admin_pin');
+      if (local && local.length === 4) {
+        setStoredPin(local);
+      }
+    };
+    window.addEventListener('storage', handlePinSync);
+    window.addEventListener('wedding_admin_pin_updated', handlePinSync);
+
+    return () => {
+      unsubPin();
+      window.removeEventListener('storage', handlePinSync);
+      window.removeEventListener('wedding_admin_pin_updated', handlePinSync);
+    };
+  }, []);
 
   // Form New Single Guest
   const [newGuest, setNewGuest] = useState({
@@ -321,16 +348,22 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
     if (onToast) onToast({ title: 'Terkunci Kembali', message: 'Panel Admin berhasil dikunci.' });
   };
 
-  const handleSaveNewPin = (e) => {
+  const handleSaveNewPin = async (e) => {
     e.preventDefault();
     if (newPinInput.length !== 4 || isNaN(newPinInput)) {
       if (onToast) onToast({ type: 'error', title: 'Format Tidak Valid', message: 'PIN baru harus 4 digit angka.' });
       return;
     }
-    setStoredPin(newPinInput);
-    localStorage.setItem('wedding_admin_pin', newPinInput);
+    const pinVal = String(newPinInput).trim();
+    setStoredPin(pinVal);
+    localStorage.setItem('wedding_admin_pin', pinVal);
     setNewPinInput('');
-    if (onToast) onToast({ title: 'PIN Diperbarui', message: 'PIN keamanan baru berhasil disimpan!' });
+    try {
+      await saveAdminPinCloud(pinVal);
+      if (onToast) onToast({ title: 'PIN Diperbarui', message: 'PIN keamanan baru berhasil disimpan & disinkronkan ke seluruh perangkat secara realtime!' });
+    } catch (err) {
+      if (onToast) onToast({ title: 'PIN Disimpan', message: 'PIN baru berhasil disimpan di perangkat ini.' });
+    }
   };
 
   // ADMIN ACTION: Toggle Pin/Sematkan Komentar
