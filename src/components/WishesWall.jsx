@@ -222,28 +222,6 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
       </ScrollReveal>
 
       <div className="max-w-xl mx-auto space-y-8">
-        {/* Active Admin Banner Notice */}
-        {isAdmin && (
-          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-amber-500/15 border border-botanical-gold/50 shadow-sm flex items-center justify-between gap-3 text-xs animate-fade-in">
-            <div className="flex items-center gap-2.5">
-              <span className="w-7 h-7 rounded-full bg-botanical-emerald text-botanical-gold flex items-center justify-center font-bold text-sm shadow-xs">
-                👑
-              </span>
-              <div>
-                <p className="font-bold text-botanical-emerald text-xs">
-                  Mode Pengantin Aktif (Admin Terverifikasi)
-                </p>
-                <p className="text-[10px] text-botanical-muted">
-                  Anda dapat menyematkan (pin) dan membalas langsung ucapan tamu di bawah ini.
-                </p>
-              </div>
-            </div>
-            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2 py-0.5 rounded-full whitespace-nowrap">
-              Admin Mode
-            </span>
-          </div>
-        )}
-
         {/* Wish Submission Form */}
         <ScrollReveal animation="scale" delay={150}>
           <form

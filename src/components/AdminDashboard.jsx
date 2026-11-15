@@ -929,20 +929,9 @@ Ridwan & Xaviera`;
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 text-[10px] font-mono">
                     TERVERIFIKASI
                   </span>
-                  {isCloudSyncActive ? (
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-400/20 border border-emerald-400 text-emerald-200 text-[10px] font-semibold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>CLOUD REALTIME</span>
-                    </span>
-                  ) : (
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-400 text-amber-200 text-[10px] font-semibold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                      <span>LOKAL BROWSER</span>
-                    </span>
-                  )}
                 </div>
                 <p className="text-[11px] sm:text-xs text-botanical-gold-light mt-0.5">
-                  Import File Excel • Sebar Undangan WhatsApp • Ringkasan RSVP • Cloud Sync
+                  Import File Excel • Sebar Undangan WhatsApp • Ringkasan RSVP
                 </p>
               </div>
             </div>
@@ -972,7 +961,6 @@ Ridwan & Xaviera`;
               { id: 'blast', label: `Sebar Link WhatsApp (${guests.length})`, icon: Send },
               { id: 'wishes', label: `Kelola Ucapan (${wishes.length})`, icon: MessageSquare },
               { id: 'stats', label: 'Ringkasan Tamu & RSVP', icon: BarChart3 },
-              { id: 'cloud', label: isCloudSyncActive ? 'Cloud Realtime (Aktif)' : 'Cloud Realtime', icon: Cloud },
               { id: 'pin', label: 'Ubah PIN', icon: KeyRound },
             ].map((tab) => {
               const Icon = tab.icon;
@@ -1685,135 +1673,6 @@ Ridwan & Xaviera`;
                       </tbody>
                     </table>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: SINKRONISASI CLOUD REALTIME */}
-            {activeTab === 'cloud' && (
-              <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-                {/* Status Koneksi Banner */}
-                <div className={`p-5 rounded-3xl border shadow-xs transition-all ${
-                  isCloudSyncActive
-                    ? 'bg-emerald-50/90 border-emerald-300'
-                    : 'bg-amber-50/90 border-amber-300'
-                }`}>
-                  <div className="flex items-start gap-3.5">
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
-                      isCloudSyncActive
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-amber-600 text-white'
-                    }`}>
-                      {isCloudSyncActive ? <Cloud className="w-5 h-5" /> : <WifiOff className="w-5 h-5" />}
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-serif text-base font-bold text-gray-900">
-                          {isCloudSyncActive
-                            ? 'Cloud Database Realtime: AKTIF & TERHUBUNG'
-                            : 'Cloud Database: Mode Lokal Browser (Belum Terhubung)'}
-                        </h4>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          isCloudSyncActive
-                            ? 'bg-emerald-200 text-emerald-800'
-                            : 'bg-amber-200 text-amber-800'
-                        }`}>
-                          {isCloudSyncActive ? 'ONLINE' : 'LOKAL'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        {isCloudSyncActive
-                          ? 'Setiap tamu yang mengirimkan ucapan doa di HP/akun Google lain akan langsung muncul secara real-time. Daftar sebar link Excel yang Anda import juga otomatis tersinkronisasi ke seluruh perangkat.'
-                          : 'Saat ini ucapan dan daftar tamu hanya tersimpan di memori browser HP/laptop ini. Hubungkan ke Google Firebase (100% Gratis dari Google) agar otomatis sinkron ke seluruh akun Google & HP tamu secara real-time.'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {isCloudSyncActive && (
-                    <div className="mt-4 pt-3 border-t border-emerald-200/70 flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-[11px] text-emerald-800 font-semibold">
-                        ✓ {wishes.length} ucapan &amp; {guests.length} tamu tersinkronisasi di Cloud.
-                      </span>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (guests.length > 0) await replaceAllGuestsCloud(guests);
-                          if (onToast) onToast({ title: 'Sinkronisasi Selesai', message: 'Seluruh data lokal berhasil diunggah ulang ke Cloud.' });
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Upload Ulang Data Lokal ke Cloud</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Panduan & Formulir Pengaturan Firebase */}
-                <div className="p-6 rounded-3xl bg-white border border-botanical-gold/30 shadow-xs space-y-4">
-                  <div className="border-b border-gray-100 pb-3">
-                    <h4 className="font-serif text-lg font-bold text-botanical-emerald">
-                      Pengaturan Koneksi Google Firebase
-                    </h4>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Gunakan Google Firebase (Cloud Firestore) gratis selamanya untuk sinkronisasi real-time instan ke semua akun Google dan perangkat.
-                    </p>
-                  </div>
-
-                  {/* Panduan 3 Langkah */}
-                  <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-2 text-xs text-gray-700">
-                    <p className="font-bold text-botanical-emerald">Cara Mendapatkan Konfigurasi Firebase (2 Menit):</p>
-                    <ol className="list-decimal list-inside space-y-1 text-[11px] text-gray-600 leading-relaxed">
-                      <li>Buka <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-emerald-600 underline font-semibold">console.firebase.google.com</a> dan login dengan Akun Google Anda.</li>
-                      <li>Klik <strong>"Tambahkan project"</strong> (beri nama bebas, misal: <em>undangan-ridwan</em>).</li>
-                      <li>Di menu kiri, pilih <strong>Build &gt; Firestore Database</strong> &gt; klik <strong>Buat Database</strong> (pilih Test mode / Mode pengujian).</li>
-                      <li>Buka <strong>Setelan Project</strong> (ikon gerigi) &gt; scroll ke bawah ke bagian <em>Aplikasi Anda</em> &gt; pilih ikon Web <code>&lt;/&gt;</code>.</li>
-                      <li>Salin objek kode <code>firebaseConfig</code> dan tempelkan ke kolom di bawah ini.</li>
-                    </ol>
-                  </div>
-
-                  <form onSubmit={handleSaveCloudConfig} className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-800 mb-1">
-                        Objek Konfigurasi Firebase (JSON / Objek):
-                      </label>
-                      <textarea
-                        rows={7}
-                        required
-                        value={firebaseConfigInput}
-                        onChange={(e) => setFirebaseConfigInput(e.target.value)}
-                        placeholder={`{\n  "apiKey": "AIzaSy...",\n  "authDomain": "undangan-ridwan.firebaseapp.com",\n  "projectId": "undangan-ridwan",\n  "storageBucket": "undangan-ridwan.appspot.com",\n  "messagingSenderId": "...",\n  "appId": "..."\n}`}
-                        className="w-full p-3 font-mono text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50 text-gray-800"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2">
-                      {isCloudSyncActive ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm('Putuskan koneksi cloud? Data akan kembali disimpan di lokal browser saja.')) {
-                              localStorage.removeItem('wedding_firebase_config');
-                              setIsCloudSyncActive(false);
-                              setFirebaseConfigInput('');
-                              if (onToast) onToast({ title: 'Koneksi Diputus', message: 'Sistem kembali ke penyimpanan lokal browser.' });
-                            }
-                          }}
-                          className="text-xs text-red-600 hover:text-red-700 underline font-medium"
-                        >
-                          Putuskan Koneksi Cloud
-                        </button>
-                      ) : <span />}
-
-                      <button
-                        type="submit"
-                        className="px-5 py-2.5 rounded-xl bg-botanical-emerald hover:bg-botanical-emerald-light text-white text-xs font-semibold shadow transition-all hover:scale-101"
-                      >
-                        Simpan &amp; Aktifkan Cloud Realtime
-                      </button>
-                    </div>
-                  </form>
                 </div>
               </div>
             )}
