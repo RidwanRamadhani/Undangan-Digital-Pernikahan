@@ -87,6 +87,27 @@ export const isCloudConnected = () => {
   return Boolean(getDb());
 };
 
+// Safe Formatter: Memastikan nilai waktu selalu bertipe string aman untuk render React
+export const formatWishTime = (val, localFallback = 'Baru saja') => {
+  if (!val) return localFallback;
+  if (typeof val === 'string') return val;
+  if (typeof val?.toDate === 'function') {
+    try {
+      return val.toDate().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+    } catch (e) {
+      return localFallback;
+    }
+  }
+  if (val?.seconds) {
+    try {
+      return new Date(val.seconds * 1000).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+    } catch (e) {
+      return localFallback;
+    }
+  }
+  return localFallback;
+};
+
 // ===============================================================
 // 1. UCAPAN & DOA REALTIME (GLOBAL COLLECTION: 'wishes')
 // Struktur Field: nama, kehadiran, ucapan, createdAt, isPinned, replyMessage
@@ -100,7 +121,13 @@ export const subscribeToWishes = (onSuccess, onError) => {
     const saved = localStorage.getItem('wedding_wishes');
     if (saved) {
       try {
-        onSuccess(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          onSuccess(parsed.map(w => ({
+            ...w,
+            createdAt: formatWishTime(w.createdAt, w.createdAtLocal || 'Baru saja')
+          })));
+        }
       } catch (e) {}
     }
     return () => {};
@@ -118,28 +145,21 @@ export const subscribeToWishes = (onSuccess, onError) => {
           const sender = data.nama || data.senderName || 'Tamu Undangan';
           const badge = data.kehadiran || data.attendanceBadge || 'Hadir';
           const msg = data.ucapan || data.message || '';
-          
-          let formattedTime = 'Baru saja';
-          if (data.createdAt?.toDate) {
-            formattedTime = data.createdAt.toDate().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
-          } else if (data.createdAtLocal) {
-            formattedTime = data.createdAtLocal;
-          }
+          const timeFormatted = formatWishTime(data.createdAt, data.createdAtLocal || 'Baru saja');
 
           wishes.push({
+            ...data,
             id: docSnap.id,
-            // Struktur field sesuai instruksi:
             nama: sender,
             kehadiran: badge,
             ucapan: msg,
-            // Kompatibilitas dengan komponen UI:
             senderName: sender,
             attendanceBadge: badge,
             message: msg,
             replyMessage: data.replyMessage || null,
             isPinned: Boolean(data.isPinned),
-            createdAt: formattedTime,
-            ...data
+            createdAt: String(timeFormatted), // WAJIB STRING agar React tidak crash
+            createdAtLocal: String(timeFormatted)
           });
         });
 
@@ -165,10 +185,13 @@ export const addWishCloud = async (wish) => {
   const nama = wish.nama || wish.senderName || '';
   const kehadiran = wish.kehadiran || wish.attendanceBadge || 'Hadir';
   const ucapan = wish.ucapan || wish.message || '';
-
   const docId = wish.id || ('wish-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6));
 
-  const wishPayload = {
+  const currentTimeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+  // 1. Simpan ke local storage dengan createdAt bertipe string (TIDAK BOLEH objek serverTimestamp di lokal!)
+  const localWishItem = {
+    id: docId,
     nama: nama,
     kehadiran: kehadiran,
     ucapan: ucapan,
@@ -177,25 +200,43 @@ export const addWishCloud = async (wish) => {
     message: ucapan,
     replyMessage: wish.replyMessage || null,
     isPinned: Boolean(wish.isPinned),
-    createdAt: serverTimestamp(),
-    createdAtLocal: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+    createdAt: currentTimeStr, // STRING!
+    createdAtLocal: currentTimeStr
   };
 
-  // Simpan ke local storage segera
   const saved = localStorage.getItem('wedding_wishes');
   let currentList = [];
   if (saved) {
-    try { currentList = JSON.parse(saved); } catch (e) {}
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        currentList = parsed.map(w => ({
+          ...w,
+          createdAt: typeof w.createdAt === 'string' ? w.createdAt : currentTimeStr
+        }));
+      }
+    } catch (e) {}
   }
-  const updatedList = [{ id: docId, ...wishPayload }, ...currentList.filter(w => w.id !== docId)];
+  const updatedList = [localWishItem, ...currentList.filter(w => w.id !== docId)];
   localStorage.setItem('wedding_wishes', JSON.stringify(updatedList));
   window.dispatchEvent(new Event('wedding_wishes_updated'));
 
-  // Sinkronkan ke Firebase Firestore Global Path 'wishes'
+  // 2. Sinkronkan ke Firebase Firestore Global Path 'wishes' dengan serverTimestamp()
   if (db) {
     try {
       const docRef = doc(db, 'wishes', String(docId));
-      await setDoc(docRef, wishPayload, { merge: true });
+      await setDoc(docRef, {
+        nama: nama,
+        kehadiran: kehadiran,
+        ucapan: ucapan,
+        senderName: nama,
+        attendanceBadge: kehadiran,
+        message: ucapan,
+        replyMessage: wish.replyMessage || null,
+        isPinned: Boolean(wish.isPinned),
+        createdAt: serverTimestamp(),
+        createdAtLocal: currentTimeStr
+      }, { merge: true });
     } catch (err) {
       console.error('Gagal kirim ucapan ke Firebase Firestore:', err);
     }

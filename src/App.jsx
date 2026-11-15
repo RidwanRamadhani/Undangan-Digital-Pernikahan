@@ -15,6 +15,7 @@ import WishesWall from './components/WishesWall';
 import BottomNav from './components/BottomNav';
 import AdminDashboard from './components/AdminDashboard';
 import Toast from './components/Toast';
+import ErrorBoundary from './components/ErrorBoundary';
 import { Heart, Sparkles, ShieldCheck } from 'lucide-react';
 
 export default function App() {
@@ -106,7 +107,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-botanical-bg text-botanical-obsidian relative selection:bg-botanical-gold selection:text-white">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-botanical-bg text-botanical-obsidian relative selection:bg-botanical-gold selection:text-white">
       {/* Golden Shimmer Ambient Particles */}
       <AmbientParticles />
 
@@ -244,5 +246,6 @@ export default function App() {
         onToast={addToast}
       />
     </div>
+  </ErrorBoundary>
   );
 }

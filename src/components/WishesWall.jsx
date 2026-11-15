@@ -8,7 +8,13 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
     const saved = localStorage.getItem('wedding_wishes');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.map((item) => ({
+            ...item,
+            createdAt: typeof item?.createdAt === 'string' ? item.createdAt : 'Baru saja'
+          }));
+        }
       } catch (e) {
         return initialWishes;
       }
@@ -40,7 +46,10 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
     // 1. Subscribe to Real-time Cloud
     const unsubscribeCloud = subscribeToWishes((cloudWishes) => {
       if (Array.isArray(cloudWishes) && cloudWishes.length > 0) {
-        setWishes(cloudWishes);
+        setWishes(cloudWishes.map((item) => ({
+          ...item,
+          createdAt: typeof item?.createdAt === 'string' ? item.createdAt : 'Baru saja'
+        })));
         setIsOnline(true);
       }
     });
@@ -50,7 +59,13 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
       const saved = localStorage.getItem('wedding_wishes');
       if (saved) {
         try {
-          setWishes(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setWishes(parsed.map((item) => ({
+              ...item,
+              createdAt: typeof item?.createdAt === 'string' ? item.createdAt : 'Baru saja'
+            })));
+          }
         } catch (e) {}
       }
     };
@@ -325,7 +340,7 @@ export default function WishesWall({ initialWishes, guestName, isAdmin, onOpenAd
                       </span>
                     )}
                     <Clock className="w-2.5 h-2.5" />
-                    <span>{item.createdAt}</span>
+                    <span>{typeof item.createdAt === 'string' ? item.createdAt : 'Baru saja'}</span>
                   </div>
                 </div>
 

@@ -55,7 +55,13 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
     const saved = localStorage.getItem('wedding_wishes');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.map((item) => ({
+            ...item,
+            createdAt: typeof item?.createdAt === 'string' ? item.createdAt : 'Baru saja'
+          }));
+        }
       } catch (e) {}
     }
     return [];
@@ -87,7 +93,10 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
     // 2. Subscribe to Cloud Wishes
     const unsubWishes = subscribeToWishes((cloudWishes) => {
       if (Array.isArray(cloudWishes) && cloudWishes.length > 0) {
-        setWishes(cloudWishes);
+        setWishes(cloudWishes.map((item) => ({
+          ...item,
+          createdAt: typeof item?.createdAt === 'string' ? item.createdAt : 'Baru saja'
+        })));
         setIsCloudSyncActive(true);
       }
     });
@@ -97,7 +106,13 @@ export default function AdminDashboard({ isOpen, onClose, onToast }) {
       const saved = localStorage.getItem('wedding_wishes');
       if (saved) {
         try {
-          setWishes(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setWishes(parsed.map((item) => ({
+              ...item,
+              createdAt: typeof item?.createdAt === 'string' ? item.createdAt : 'Baru saja'
+            })));
+          }
         } catch (e) {}
       }
     };
@@ -1439,7 +1454,7 @@ Ridwan & Xaviera`;
                                 <span>Disematkan</span>
                               </span>
                             )}
-                            <span>{item.createdAt}</span>
+                            <span>{typeof item.createdAt === 'string' ? item.createdAt : 'Baru saja'}</span>
                           </div>
                         </div>
 
