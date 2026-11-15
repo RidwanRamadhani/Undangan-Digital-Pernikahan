@@ -14,7 +14,18 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-// Helper retrieve config from localStorage or Vite ENV
+// Konfigurasi Default Firebase Resmi Proyek
+export const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDYRVySz99SAQhzTKt9WTWQLhHy1uEuXjw",
+  authDomain: "undangan-digital-ridwan.firebaseapp.com",
+  projectId: "undangan-digital-ridwan",
+  storageBucket: "undangan-digital-ridwan.firebasestorage.app",
+  messagingSenderId: "53929332418",
+  appId: "1:53929332418:web:e8b01af7cf674e3c94355b",
+  measurementId: "G-51M5BQC6XT"
+};
+
+// Helper retrieve config from localStorage or Vite ENV or Default Config
 export const getActiveFirebaseConfig = () => {
   const localSaved = localStorage.getItem('wedding_firebase_config');
   if (localSaved) {
@@ -37,7 +48,7 @@ export const getActiveFirebaseConfig = () => {
     };
   }
 
-  return null;
+  return DEFAULT_FIREBASE_CONFIG;
 };
 
 // Singleton instances
